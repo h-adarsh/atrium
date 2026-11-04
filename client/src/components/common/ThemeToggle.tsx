@@ -6,8 +6,7 @@ export const ThemeToggle: React.FC<{ className?: string }> = ({ className = '' }
 
   useEffect(() => {
     const saved = localStorage.getItem('theme');
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    const shouldBeDark = saved ? saved === 'dark' : prefersDark;
+    const shouldBeDark = saved === 'dark';
 
     if (shouldBeDark) {
       document.documentElement.classList.add('dark');
@@ -80,7 +79,7 @@ export const ThemeToggle: React.FC<{ className?: string }> = ({ className = '' }
     <button
       type="button"
       onClick={toggleTheme}
-      className={`relative p-1.5 rounded-md border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-zinc-600 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition shadow-xs group ${className}`}
+      className={`relative p-2 rounded-full border border-[#e5e7eb] dark:border-[#27272a] bg-white dark:bg-[#18181b] text-[#545454] dark:text-[#a1a1aa] hover:text-[#333333] dark:hover:text-[#ffffff] hover:bg-[#f9f9fb] dark:hover:bg-[#27272a] transition shadow-none group ${className}`}
       title={isDark ? 'Switch to Light mode' : 'Switch to Dark mode'}
       aria-label="Toggle theme"
     >

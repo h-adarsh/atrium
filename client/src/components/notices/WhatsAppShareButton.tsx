@@ -1,15 +1,18 @@
 import React, { useState } from 'react';
 import { Share2, Check } from 'lucide-react';
 import { Notice } from '../../types';
+import { useAuth } from '../../context/AuthContext';
 
 export const WhatsAppShareButton: React.FC<{ notice: Notice }> = ({ notice }) => {
+  const { user } = useAuth();
   const [copied, setCopied] = useState(false);
 
   const handleShare = (e: React.MouseEvent) => {
     e.stopPropagation();
 
+    const societyName = user?.society?.name || 'Apartment RWA';
     const formattedMessage = `📢 *[SOCIETY NOTICE: ${notice.title.toUpperCase()}]*\n` +
-      `🏢 Royal Orchid RWA\n` +
+      `🏢 ${societyName}\n` +
       `Priority: ${notice.priority}\n\n` +
       `${notice.content}\n\n` +
       `Date: ${new Date(notice.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}\n` +

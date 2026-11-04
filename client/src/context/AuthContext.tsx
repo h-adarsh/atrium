@@ -16,6 +16,8 @@ interface AuthContextType {
     occupantCount: number;
     password: string;
     passwordConfirmation?: string;
+    societyId?: string;
+    societySlug?: string;
   }) => Promise<void>;
   logout: () => Promise<void>;
   quickSwitchAccount: (email: string, password: string) => Promise<void>;
@@ -37,10 +39,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setUser(res.user);
       } else {
         setUser(null);
+        localStorage.removeItem('atrium_token');
         localStorage.removeItem('mygate_token');
       }
     } catch {
       setUser(null);
+      localStorage.removeItem('atrium_token');
       localStorage.removeItem('mygate_token');
     } finally {
       setLoading(false);
@@ -55,7 +59,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const res = await api.auth.login({ email, password });
     if (res.success && res.user) {
       if (res.token) {
-        localStorage.setItem('mygate_token', res.token);
+        localStorage.setItem('atrium_token', res.token);
       }
       setUser(res.user);
     }
@@ -75,7 +79,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const res = await api.auth.register(data);
     if (res.success && res.user) {
       if (res.token) {
-        localStorage.setItem('mygate_token', res.token);
+        localStorage.setItem('atrium_token', res.token);
       }
       setUser(res.user);
     }
@@ -87,8 +91,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } catch {
       // Ignore network errors on logout
     }
+    localStorage.removeItem('atrium_token');
     localStorage.removeItem('mygate_token');
     setUser(null);
+    if (typeof window !== 'undefined' && window.location.hash) {
+      window.history.replaceState(null, '', window.location.pathname + window.location.search);
+    }
   };
 
   const quickSwitchAccount = async (email: string, password: string) => {

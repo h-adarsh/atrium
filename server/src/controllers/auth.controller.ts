@@ -14,9 +14,18 @@ export async function login(req: Request, res: Response): Promise<void> {
       return;
     }
 
-    const user = await prisma.user.findUnique({
-      where: { email: email.toLowerCase().trim() },
-      include: { flat: true }
+    const normalizedEmail = email.toLowerCase().trim();
+    const alternateEmail = normalizedEmail.endsWith('@atrium.local')
+      ? normalizedEmail.replace('@atrium.local', '@mygate.local')
+      : normalizedEmail.endsWith('@mygate.local')
+      ? normalizedEmail.replace('@mygate.local', '@atrium.local')
+      : null;
+
+    const user = await prisma.user.findFirst({
+      where: alternateEmail ? {
+        OR: [{ email: normalizedEmail }, { email: alternateEmail }]
+      } : { email: normalizedEmail },
+      include: { flat: true, society: true }
     });
 
     if (!user || !user.isActive) {
@@ -36,7 +45,9 @@ export async function login(req: Request, res: Response): Promise<void> {
       role: user.role,
       approvalStatus: user.approvalStatus,
       flatId: user.flat?.id || null,
-      unitNumber: user.flat?.unitNumber || null
+      unitNumber: user.flat?.unitNumber || null,
+      societyId: user.societyId || null,
+      societySlug: user.society?.slug || null
     });
 
     res.cookie('token', token, {
@@ -57,6 +68,18 @@ export async function login(req: Request, res: Response): Promise<void> {
         role: user.role,
         occupancyType: user.occupancyType,
         approvalStatus: user.approvalStatus,
+        society: user.society ? {
+          id: user.society.id,
+          name: user.society.name,
+          slug: user.society.slug,
+          city: user.society.city,
+          totalFloors: user.society.totalFloors,
+          flatsPerFloor: user.society.flatsPerFloor,
+          hasBasement: user.society.hasBasement,
+          hasTerrace: user.society.hasTerrace,
+          bankAccountName: user.society.bankAccountName,
+          upiId: user.society.upiId
+        } : null,
         flat: user.flat ? {
           id: user.flat.id,
           unitNumber: user.flat.unitNumber,
@@ -84,7 +107,9 @@ export async function register(req: Request, res: Response): Promise<void> {
       occupancyType,
       occupantCount,
       password,
-      passwordConfirmation
+      passwordConfirmation,
+      societyId,
+      societySlug
     } = req.body;
 
     // 1. Mandatory field validations
@@ -129,13 +154,36 @@ export async function register(req: Request, res: Response): Promise<void> {
       return;
     }
 
-    // 3. Find the selected flat
-    const flat = await prisma.flat.findUnique({
-      where: { unitNumber: String(unitNumber).trim() }
+    // Resolve target society (default to first active society if not specified)
+    let targetSociety = null;
+    if (societySlug) {
+      targetSociety = await prisma.society.findUnique({ where: { slug: String(societySlug).trim() } });
+    } else if (societyId) {
+      targetSociety = await prisma.society.findUnique({ where: { id: String(societyId).trim() } });
+    }
+
+    if (!targetSociety) {
+      targetSociety = await prisma.society.findFirst();
+    }
+
+    if (!targetSociety) {
+      res.status(400).json({ success: false, message: 'No society configured in the system.' });
+      return;
+    }
+
+    // 3. Find the selected flat in the target society
+    const flat = await prisma.flat.findFirst({
+      where: {
+        societyId: targetSociety.id,
+        unitNumber: String(unitNumber).trim()
+      }
     });
 
     if (!flat) {
-      res.status(404).json({ success: false, message: `Unit ${unitNumber} was not found in the building registry.` });
+      res.status(404).json({
+        success: false,
+        message: `Unit ${unitNumber} was not found in ${targetSociety.name}.`
+      });
       return;
     }
 
@@ -152,6 +200,7 @@ export async function register(req: Request, res: Response): Promise<void> {
 
     const newUser = await prisma.user.create({
       data: {
+        societyId: targetSociety.id,
         email: cleanEmail,
         fullName: fullName.trim(),
         phone: phone.trim(),
@@ -183,7 +232,9 @@ export async function register(req: Request, res: Response): Promise<void> {
       role: newUser.role,
       approvalStatus: newUser.approvalStatus,
       flatId: flat.id,
-      unitNumber: flat.unitNumber
+      unitNumber: flat.unitNumber,
+      societyId: targetSociety.id,
+      societySlug: targetSociety.slug
     });
 
     res.cookie('token', token, {
@@ -235,7 +286,7 @@ export async function getCurrentUser(req: AuthenticatedRequest, res: Response): 
 
     const user = await prisma.user.findUnique({
       where: { id: req.user.userId },
-      include: { flat: true }
+      include: { flat: true, society: true }
     });
 
     if (!user) {
@@ -253,6 +304,18 @@ export async function getCurrentUser(req: AuthenticatedRequest, res: Response): 
         role: user.role,
         occupancyType: user.occupancyType,
         approvalStatus: user.approvalStatus,
+        society: user.society ? {
+          id: user.society.id,
+          name: user.society.name,
+          slug: user.society.slug,
+          city: user.society.city,
+          totalFloors: user.society.totalFloors,
+          flatsPerFloor: user.society.flatsPerFloor,
+          hasBasement: user.society.hasBasement,
+          hasTerrace: user.society.hasTerrace,
+          bankAccountName: user.society.bankAccountName,
+          upiId: user.society.upiId
+        } : null,
         flat: user.flat ? {
           id: user.flat.id,
           unitNumber: user.flat.unitNumber,
@@ -270,9 +333,28 @@ export async function getCurrentUser(req: AuthenticatedRequest, res: Response): 
 }
 
 // Public endpoint for registration dropdowns (Floor then Flat cascading)
-export async function getBuildingUnits(_req: Request, res: Response): Promise<void> {
+export async function getBuildingUnits(req: Request, res: Response): Promise<void> {
   try {
+    const { societySlug, societyId } = req.query;
+
+    let targetSociety = null;
+    if (societySlug) {
+      targetSociety = await prisma.society.findUnique({ where: { slug: String(societySlug) } });
+    } else if (societyId) {
+      targetSociety = await prisma.society.findUnique({ where: { id: String(societyId) } });
+    }
+
+    if (!targetSociety) {
+      targetSociety = await prisma.society.findFirst();
+    }
+
+    const whereClause: any = {};
+    if (targetSociety) {
+      whereClause.societyId = targetSociety.id;
+    }
+
     const flats = await prisma.flat.findMany({
+      where: whereClause,
       select: {
         id: true,
         unitNumber: true,
@@ -282,29 +364,58 @@ export async function getBuildingUnits(_req: Request, res: Response): Promise<vo
       orderBy: { unitNumber: 'asc' }
     });
 
-    const floors = [1, 2, 3, 4].map(floor => ({
+    const floorNumbers = Array.from(new Set(flats.map(f => f.floorNumber))).sort((a, b) => a - b);
+    const floors = floorNumbers.map(floor => ({
       floor,
       units: flats.filter(f => f.floorNumber === floor).map(f => f.unitNumber)
     }));
 
-    res.json({ success: true, floors });
+    res.json({
+      success: true,
+      society: targetSociety ? {
+        id: targetSociety.id,
+        name: targetSociety.name,
+        slug: targetSociety.slug,
+        totalFloors: targetSociety.totalFloors,
+        flatsPerFloor: targetSociety.flatsPerFloor,
+        hasTerrace: targetSociety.hasTerrace,
+        hasBasement: targetSociety.hasBasement
+      } : null,
+      floors
+    });
   } catch (error) {
     console.error('GetBuildingUnits error:', error);
     res.status(500).json({ success: false, message: 'Failed to retrieve building units.' });
   }
 }
 
-// ADMIN ONLY: View pending resident registrations
+// ADMIN / SUPER_ADMIN: View pending resident registrations
 export async function getPendingRegistrations(req: AuthenticatedRequest, res: Response): Promise<void> {
   try {
-    if (req.user?.role !== 'ADMIN') {
+    if (req.user?.role !== 'ADMIN' && req.user?.role !== 'SUPER_ADMIN') {
       res.status(403).json({ success: false, message: 'Forbidden: Admin access required.' });
       return;
     }
 
+    const whereClause: any = { approvalStatus: 'PENDING' };
+    if (req.user.role !== 'SUPER_ADMIN' && req.user.societyId) {
+      whereClause.societyId = req.user.societyId;
+    }
+
     const pending = await prisma.user.findMany({
-      where: { approvalStatus: 'PENDING' },
-      include: { flat: true },
+      where: whereClause,
+      select: {
+        id: true,
+        email: true,
+        fullName: true,
+        phone: true,
+        role: true,
+        occupancyType: true,
+        approvalStatus: true,
+        createdAt: true,
+        flat: true,
+        society: true
+      },
       orderBy: { createdAt: 'desc' }
     });
 
@@ -318,13 +429,18 @@ export async function getPendingRegistrations(req: AuthenticatedRequest, res: Re
 // ADMIN ONLY: Approve or Reject resident registration
 export async function reviewRegistration(req: AuthenticatedRequest, res: Response): Promise<void> {
   try {
-    if (req.user?.role !== 'ADMIN') {
+    if (req.user?.role !== 'ADMIN' && req.user?.role !== 'SUPER_ADMIN') {
       res.status(403).json({ success: false, message: 'Forbidden: Admin access required.' });
       return;
     }
 
     const { userId } = req.params;
     const { action } = req.body; // 'APPROVE' or 'REJECT'
+
+    if (action !== 'APPROVE' && action !== 'REJECT') {
+      res.status(400).json({ success: false, message: 'Invalid action. Must be APPROVE or REJECT.' });
+      return;
+    }
 
     const targetUser = await prisma.user.findUnique({
       where: { id: userId },
@@ -336,12 +452,29 @@ export async function reviewRegistration(req: AuthenticatedRequest, res: Respons
       return;
     }
 
+    // MULTI-TENANT ISOLATION: Admin can only review registrations in their own society
+    if (req.user.role !== 'SUPER_ADMIN' && req.user.societyId && targetUser.societyId !== req.user.societyId) {
+      res.status(403).json({ success: false, message: 'Forbidden: You can only review registrations for your own society.' });
+      return;
+    }
+
     const newStatus = action === 'APPROVE' ? 'APPROVED' : 'REJECTED';
 
     const updated = await prisma.user.update({
       where: { id: userId },
       data: {
         approvalStatus: newStatus
+      },
+      select: {
+        id: true,
+        email: true,
+        fullName: true,
+        phone: true,
+        role: true,
+        occupancyType: true,
+        approvalStatus: true,
+        flatId: true,
+        societyId: true
       }
     });
 
@@ -367,11 +500,78 @@ export async function reviewRegistration(req: AuthenticatedRequest, res: Respons
   }
 }
 
-// Quick demo / helper account list for easy evaluation
+// Resident self-service: Cancel a mistaken or rejected registration to re-select correct apartment/unit
+export async function cancelPendingRegistration(req: AuthenticatedRequest, res: Response): Promise<void> {
+  try {
+    const userId = req.user?.userId;
+    if (!userId) {
+      res.status(401).json({ success: false, message: 'Authentication required.' });
+      return;
+    }
+
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+    if (!user) {
+      res.status(404).json({ success: false, message: 'User account not found.' });
+      return;
+    }
+
+    // Safety constraint: Only PENDING or REJECTED registrations can be cancelled by the user
+    if (user.approvalStatus !== 'PENDING' && user.approvalStatus !== 'REJECTED') {
+      res.status(400).json({
+        success: false,
+        message: 'Active approved resident accounts cannot be cancelled via this endpoint. Contact your building administrator.'
+      });
+      return;
+    }
+
+    // If unit had this resident linked, unlink it
+    if (user.flatId) {
+      const flat = await prisma.flat.findUnique({ where: { id: user.flatId } });
+      if (flat?.residentId === user.id) {
+        await prisma.flat.update({
+          where: { id: flat.id },
+          data: { residentId: null }
+        });
+      }
+    }
+
+    // Safely delete any feedback submitted during pending state
+    await prisma.feedback.deleteMany({ where: { userId: user.id } });
+
+    // Delete the unapproved user record
+    await prisma.user.delete({ where: { id: user.id } });
+
+    // Clear authentication cookie
+    res.clearCookie('token');
+
+    res.json({
+      success: true,
+      message: 'Mistaken registration cancelled successfully. You can now re-register for the correct apartment.'
+    });
+  } catch (error) {
+    console.error('CancelPendingRegistration error:', error);
+    res.status(500).json({ success: false, message: 'Failed to cancel registration.' });
+  }
+}
+
+// Quick demo / helper account list for easy evaluation (strictly sandboxed to demo domain)
 export async function getDemoAccounts(_req: Request, res: Response): Promise<void> {
   try {
+    // SECURITY: In production, do not leak demo passwords or resident listings
+    if (process.env.NODE_ENV === 'production' && process.env.ENABLE_DEMO_ACCOUNTS !== 'true') {
+      res.status(403).json({ success: false, message: 'Demo accounts endpoint disabled in production' });
+      return;
+    }
+
+    // Strictly filter to local mock seed accounts to prevent leaking real resident PII
     const users = await prisma.user.findMany({
-      where: { approvalStatus: 'APPROVED' },
+      where: {
+        approvalStatus: 'APPROVED',
+        OR: [
+          { email: { endsWith: '@atrium.local' } },
+          { email: { endsWith: '@mygate.local' } }
+        ]
+      },
       include: { flat: true },
       orderBy: [{ role: 'asc' }, { email: 'asc' }]
     });

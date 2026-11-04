@@ -26,9 +26,9 @@ export const PayDueModal: React.FC<PayDueModalProps> = ({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const upiId = config?.upiId || 'royalorchid.rwa@hdfcbank';
+  const upiId = config?.upiId || 'payments.rwa@hdfcbank';
   const amount = Number(due.totalDue);
-  const payeeName = config?.bankAccountName || 'Royal Orchid RWA';
+  const payeeName = config?.bankAccountName || 'Apartment RWA';
 
   const upiUrl = `upi://pay?pa=${encodeURIComponent(upiId)}&pn=${encodeURIComponent(payeeName)}&am=${amount.toFixed(2)}&cu=INR&tn=${encodeURIComponent(`Flat ${due.flat.unitNumber} Maint ${due.billingPeriod}`)}`;
   const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(upiUrl)}`;

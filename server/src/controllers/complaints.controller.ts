@@ -10,6 +10,10 @@ export async function getComplaints(req: AuthenticatedRequest, res: Response): P
 
     const where: any = {};
 
+    if (req.user?.role !== 'SUPER_ADMIN' && req.user?.societyId) {
+      where.societyId = req.user.societyId;
+    }
+
     if (isResident) {
       if (!req.user?.flatId) {
         res.status(403).json({ success: false, message: 'No flat linked to this resident account' });
@@ -66,8 +70,17 @@ export async function createComplaint(req: AuthenticatedRequest, res: Response):
       return;
     }
 
+    const flat = await prisma.flat.findUnique({ where: { id: req.user.flatId } });
+    const societyId = req.user.societyId || flat?.societyId;
+
+    if (!societyId) {
+      res.status(400).json({ success: false, message: 'Society affiliation missing for filing complaint' });
+      return;
+    }
+
     const complaint = await prisma.complaint.create({
       data: {
+        societyId,
         flatId: req.user.flatId,
         createdById: req.user.userId,
         title: title.trim(),
@@ -109,6 +122,12 @@ export async function updateComplaint(req: AuthenticatedRequest, res: Response):
 
     if (!existing) {
       res.status(404).json({ success: false, message: 'Complaint not found' });
+      return;
+    }
+
+    // MULTI-TENANT ISOLATION: Admin/Staff can only update complaints within their own society
+    if (req.user?.role !== 'SUPER_ADMIN' && req.user?.societyId && existing.societyId !== req.user.societyId) {
+      res.status(403).json({ success: false, message: 'Forbidden: Ticket belongs to another society.' });
       return;
     }
 

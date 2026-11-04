@@ -74,8 +74,8 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({
   const categoryOptions: Array<{ type: FeedbackType; label: string; icon: React.ReactNode }> = [
     { type: 'BUG', label: 'Bug / Issue', icon: <Bug className="w-3.5 h-3.5 text-rose-500" /> },
     { type: 'FEATURE_REQUEST', label: 'Feature Request', icon: <Lightbulb className="w-3.5 h-3.5 text-amber-500" /> },
-    { type: 'USABILITY', label: 'UI / UX', icon: <Palette className="w-3.5 h-3.5 text-sky-500" /> },
-    { type: 'GENERAL', label: 'General', icon: <MessageCircle className="w-3.5 h-3.5 text-emerald-500" /> }
+    { type: 'USABILITY', label: 'UI / UX', icon: <Palette className="w-3.5 h-3.5 text-[#2c70dd]" /> },
+    { type: 'GENERAL', label: 'General', icon: <MessageCircle className="w-3.5 h-3.5 text-[#24b26d]" /> }
   ];
 
   return (
@@ -83,75 +83,73 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({
       isOpen={isOpen}
       onClose={handleReset}
       title="Tester & Resident Feedback"
-      subtitle="Help us refine the Royal Orchid apartment experience"
+      subtitle="Help us refine your apartment community experience"
       maxWidth="max-w-md"
     >
       {submitted ? (
-        <div className="py-6 text-center space-y-3">
-          <div className="w-12 h-12 rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 mx-auto flex items-center justify-center">
+        <div className="py-6 text-center space-y-3 font-sans">
+          <div className="w-12 h-12 rounded-full bg-[#f9f9fb] dark:bg-[#18181b] border border-[#e5e7eb] dark:border-[#27272a] text-[#24b26d] mx-auto flex items-center justify-center">
             <CheckCircle2 className="w-6 h-6" />
           </div>
-          <h3 className="text-base font-semibold text-zinc-900 dark:text-zinc-100">
+          <h3 className="text-[17px] font-semibold text-[#333333] dark:text-[#f4f4f5]">
             Thank you for your feedback!
           </h3>
-          <p className="text-xs text-zinc-600 dark:text-zinc-400 max-w-sm mx-auto leading-relaxed">
+          <p className="text-[13px] text-[#545454] dark:text-[#a1a1aa] max-w-sm mx-auto leading-relaxed">
             Your review and suggestions have been logged and will be used to enhance upcoming updates.
           </p>
           <div className="pt-2">
             <button
               type="button"
               onClick={handleReset}
-              className="px-4 py-2 rounded-md bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 text-xs font-medium hover:bg-zinc-800 transition"
+              className="px-5 py-2 rounded-full bg-[#333333] text-white hover:bg-[#1f1f1f] text-[13px] font-semibold transition cursor-pointer shadow-none"
             >
-              Back to Portal
+              Close
             </button>
           </div>
         </div>
       ) : (
-        <form onSubmit={handleSubmit} className="space-y-4 text-xs font-sans">
+        <form onSubmit={handleSubmit} className="space-y-4 font-sans text-[13px]">
           {error && (
-            <div className="flex items-center gap-2 p-2.5 rounded-md bg-rose-50 border border-rose-200 text-rose-700 dark:bg-rose-950/40 dark:border-rose-800 text-xs">
+            <div className="flex items-center gap-2 p-3 rounded-[8px] bg-rose-50 border border-rose-200 text-rose-700 dark:bg-rose-950/40 dark:border-rose-800 text-[12px]">
               <AlertCircle className="w-4 h-4 shrink-0" />
               <span>{error}</span>
             </div>
           )}
 
-          {/* Rating */}
-          <div className="space-y-1.5 text-center p-3 rounded-lg bg-zinc-50 dark:bg-zinc-900/60 border border-zinc-200 dark:border-zinc-800">
-            <label className="block text-[11px] font-medium text-zinc-500">
-              How is your experience testing this portal?
-            </label>
-            <div className="flex items-center justify-center gap-2 pt-1">
-              {[1, 2, 3, 4, 5].map((star) => {
-                const isFilled = (hoverRating !== null ? hoverRating : rating) >= star;
-                return (
-                  <button
-                    key={star}
-                    type="button"
-                    onClick={() => setRating(star)}
-                    onMouseEnter={() => setHoverRating(star)}
-                    onMouseLeave={() => setHoverRating(null)}
-                    className="p-1 hover:scale-115 transition transform focus:outline-hidden"
-                  >
-                    <Star
-                      className={`w-6 h-6 ${
-                        isFilled
-                          ? 'fill-amber-400 text-amber-400'
-                          : 'text-zinc-300 dark:text-zinc-700'
-                      }`}
-                    />
-                  </button>
-                );
-              })}
+          {/* Star rating selector */}
+          <div className="space-y-1.5 text-center p-3.5 rounded-[12px] bg-[#f9f9fb] dark:bg-[#1f1f23] border border-[#e5e7eb] dark:border-[#27272a]">
+            <p className="text-[11px] font-semibold text-[#767676] uppercase tracking-wider">
+              Rate Your Experience
+            </p>
+            <div className="flex items-center justify-center gap-1.5 py-1">
+              {[1, 2, 3, 4, 5].map((star) => (
+                <button
+                  key={star}
+                  type="button"
+                  onClick={() => setRating(star)}
+                  onMouseEnter={() => setHoverRating(star)}
+                  onMouseLeave={() => setHoverRating(null)}
+                  className="p-1 transition-transform hover:scale-110 focus:outline-none cursor-pointer"
+                  aria-label={`Rate ${star} star`}
+                >
+                  <Star
+                    className={`w-6 h-6 transition-colors ${
+                      star <= (hoverRating ?? rating)
+                        ? 'fill-amber-400 text-amber-400'
+                        : 'text-[#e5e7eb] dark:text-[#3f3f46]'
+                    }`}
+                  />
+                </button>
+              ))}
             </div>
-            <p className="text-[11px] font-medium text-amber-600 dark:text-amber-400 pt-0.5">
-              {ratingLabels[(hoverRating !== null ? hoverRating : rating) - 1]}
+            <p className="text-[12px] font-medium text-[#333333] dark:text-[#f4f4f5]">
+              {ratingLabels[(hoverRating ?? rating) - 1]}
             </p>
           </div>
 
           {/* Category */}
-          <div className="space-y-1">
-            <label className="block font-medium text-zinc-700 dark:text-zinc-300">
+          <div className="space-y-1.5">
+            <label className="block font-medium text-[#545454] dark:text-[#a1a1aa]">
               Feedback Category
             </label>
             <div className="grid grid-cols-2 gap-2">
@@ -160,10 +158,10 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({
                   key={opt.type}
                   type="button"
                   onClick={() => setCategory(opt.type)}
-                  className={`flex items-center gap-2 p-2 rounded-md border text-left text-xs font-medium transition ${
+                  className={`flex items-center gap-2 p-2.5 rounded-[8px] border text-left text-[13px] font-medium transition cursor-pointer ${
                     category === opt.type
-                      ? 'border-zinc-900 dark:border-zinc-100 bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100'
-                      : 'border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800/50 text-zinc-600 dark:text-zinc-400'
+                      ? 'border-[#333333] dark:border-[#f4f4f5] bg-[#eff0f6] dark:bg-[#27272a] text-[#333333] dark:text-[#f4f4f5] font-semibold'
+                      : 'border-[#e5e7eb] dark:border-[#27272a] bg-white dark:bg-[#18181b] hover:bg-[#f9f9fb] text-[#545454] dark:text-[#a1a1aa]'
                   }`}
                 >
                   {opt.icon}
@@ -174,8 +172,8 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({
           </div>
 
           {/* Feedback message */}
-          <div className="space-y-1">
-            <label className="block font-medium text-zinc-700 dark:text-zinc-300">
+          <div className="space-y-1.5">
+            <label className="block font-medium text-[#545454] dark:text-[#a1a1aa]">
               Your Observations & Suggestions <span className="text-rose-500">*</span>
             </label>
             <textarea
@@ -183,56 +181,56 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({
               rows={4}
               value={message}
               onChange={(e) => setMessage(e.target.value)}
-              placeholder="What worked well? What felt confusing, broken, or missing? (e.g. 'UPI payment flow was smooth, but ticket photo upload was slow on mobile')"
-              className="w-full px-3 py-2 rounded-md border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 focus:outline-hidden focus:ring-1 focus:ring-zinc-900 dark:focus:ring-zinc-100"
+              placeholder="What worked well? What felt confusing, broken, or missing?"
+              className="w-full px-3.5 py-2.5 rounded-[8px] border border-[#e5e7eb] dark:border-[#27272a] bg-white dark:bg-[#1f1f23] text-[#333333] dark:text-[#f4f4f5] placeholder-[#808080] focus:outline-none focus:border-[#333333] shadow-none"
             />
           </div>
 
           {/* Tester name / email for follow-up */}
           {!user && (
-            <div className="grid grid-cols-2 gap-2 pt-1">
+            <div className="grid grid-cols-2 gap-2.5 pt-1">
               <div>
-                <label className="block text-[11px] text-zinc-500 mb-0.5">Your Name (Optional)</label>
+                <label className="block text-[11px] text-[#767676] mb-0.5">Your Name (Optional)</label>
                 <input
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="e.g. Ramesh"
-                  className="w-full px-2.5 py-1.5 rounded-md border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-xs"
+                  className="w-full px-3 py-1.5 rounded-[8px] border border-[#e5e7eb] dark:border-[#27272a] bg-white dark:bg-[#1f1f23] text-[12px] text-[#333333] dark:text-[#f4f4f5] shadow-none focus:outline-none focus:border-[#333333]"
                 />
               </div>
               <div>
-                <label className="block text-[11px] text-zinc-500 mb-0.5">Email (Optional)</label>
+                <label className="block text-[11px] text-[#767676] mb-0.5">Email (Optional)</label>
                 <input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="tester@domain.com"
-                  className="w-full px-2.5 py-1.5 rounded-md border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-xs"
+                  className="w-full px-3 py-1.5 rounded-[8px] border border-[#e5e7eb] dark:border-[#27272a] bg-white dark:bg-[#1f1f23] text-[12px] text-[#333333] dark:text-[#f4f4f5] shadow-none focus:outline-none focus:border-[#333333]"
                 />
               </div>
             </div>
           )}
 
           {/* Context footer */}
-          <div className="text-[10px] text-zinc-400 flex items-center justify-between pt-1 border-t border-zinc-100 dark:border-zinc-800">
+          <div className="text-[11px] text-[#767676] flex items-center justify-between pt-1 border-t border-[#e5e7eb] dark:border-[#27272a]">
             <span>Context: Page <strong>{currentPage}</strong></span>
             <span>Device info auto-attached</span>
           </div>
 
           {/* Action buttons */}
-          <div className="flex items-center justify-end gap-2 pt-2">
+          <div className="flex items-center justify-end gap-2.5 pt-2">
             <button
               type="button"
               onClick={handleReset}
-              className="px-3 py-1.5 rounded-md border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-xs font-medium text-zinc-600 dark:text-zinc-400"
+              className="px-4 py-2 rounded-full border border-[#e5e7eb] dark:border-[#27272a] text-[#545454] dark:text-[#a1a1aa] hover:bg-[#f9f9fb] hover:border-[#545454] text-[13px] font-medium transition cursor-pointer shadow-none"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="px-4 py-1.5 rounded-md bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 text-xs font-medium hover:bg-zinc-800 transition disabled:opacity-50"
+              className="px-5 py-2 rounded-full bg-[#333333] text-white hover:bg-[#1f1f1f] dark:bg-[#f4f4f5] dark:text-[#18181b] dark:hover:bg-white text-[13px] font-semibold transition disabled:opacity-50 cursor-pointer shadow-none"
             >
               {loading ? 'Submitting...' : 'Send Feedback'}
             </button>

@@ -3,9 +3,15 @@ import { prisma } from '../config/prisma';
 import { AuthenticatedRequest } from '../middleware/auth';
 import { NoticePriority } from '@prisma/client';
 
-export async function getNotices(_req: Request, res: Response): Promise<void> {
+export async function getNotices(req: AuthenticatedRequest, res: Response): Promise<void> {
   try {
+    const where: any = {};
+    if (req.user?.role !== 'SUPER_ADMIN' && req.user?.societyId) {
+      where.societyId = req.user.societyId;
+    }
+
     const notices = await prisma.notice.findMany({
+      where,
       include: {
         publishedBy: {
           select: { fullName: true, role: true }
@@ -33,8 +39,15 @@ export async function createNotice(req: AuthenticatedRequest, res: Response): Pr
       return;
     }
 
+    const societyId = req.user?.societyId || (await prisma.society.findFirst())?.id;
+    if (!societyId) {
+      res.status(400).json({ success: false, message: 'Society affiliation missing for notice' });
+      return;
+    }
+
     const notice = await prisma.notice.create({
       data: {
+        societyId,
         title: title.trim(),
         content: content.trim(),
         category,
@@ -57,9 +70,66 @@ export async function createNotice(req: AuthenticatedRequest, res: Response): Pr
   }
 }
 
-export async function deleteNotice(req: Request, res: Response): Promise<void> {
+export async function togglePinNotice(req: AuthenticatedRequest, res: Response): Promise<void> {
   try {
     const { id } = req.params;
+
+    const existing = await prisma.notice.findUnique({
+      where: { id }
+    });
+
+    if (!existing) {
+      res.status(404).json({ success: false, message: 'Notice not found' });
+      return;
+    }
+
+    // MULTI-TENANT ISOLATION: Admin can only pin/unpin notices in their own society
+    if (req.user?.role !== 'SUPER_ADMIN' && req.user?.societyId && existing.societyId !== req.user.societyId) {
+      res.status(403).json({ success: false, message: 'Forbidden: Notice belongs to another society' });
+      return;
+    }
+
+    const notice = await prisma.notice.update({
+      where: { id },
+      data: {
+        pinned: !existing.pinned
+      },
+      include: {
+        publishedBy: {
+          select: { fullName: true }
+        }
+      }
+    });
+
+    res.json({
+      success: true,
+      notice,
+      message: `Notice ${notice.pinned ? 'pinned to top' : 'unpinned'} successfully`
+    });
+  } catch (error) {
+    console.error('TogglePinNotice error:', error);
+    res.status(500).json({ success: false, message: 'Failed to toggle notice pin status' });
+  }
+}
+
+export async function deleteNotice(req: AuthenticatedRequest, res: Response): Promise<void> {
+  try {
+    const { id } = req.params;
+
+    const existing = await prisma.notice.findUnique({
+      where: { id }
+    });
+
+    if (!existing) {
+      res.status(404).json({ success: false, message: 'Notice not found' });
+      return;
+    }
+
+    // MULTI-TENANT ISOLATION: Admin can only delete notices in their own society
+    if (req.user?.role !== 'SUPER_ADMIN' && req.user?.societyId && existing.societyId !== req.user.societyId) {
+      res.status(403).json({ success: false, message: 'Forbidden: Notice belongs to another society' });
+      return;
+    }
 
     await prisma.notice.delete({
       where: { id }

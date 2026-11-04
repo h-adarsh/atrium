@@ -1,17 +1,17 @@
 {
-  "short_name": "Royal Orchid",
-  "name": "Royal Orchid Apartment Portal",
+  "short_name": "Atrium",
+  "name": "Atrium Apartment Community Portal",
   "icons": [
     {
-      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%230f172a'><rect width='24' height='24' rx='6' fill='%230f172a'/><path d='M3 3h18v18H3z' fill='%230f172a'/><path d='M9 3v18M15 9h3M15 15h3' stroke='white' stroke-width='2' stroke-linecap='round'/></svg>",
-      "sizes": "192x192 512x512",
+      "src": "/favicon.svg",
+      "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "any maskable"
     }
   ],
   "start_url": "/",
   "display": "standalone",
-  "theme_color": "#09090b",
-  "background_color": "#09090b",
+  "theme_color": "#ffffff",
+  "background_color": "#ffffff",
   "orientation": "portrait"
 }

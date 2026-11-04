@@ -1,4 +1,4 @@
-export type Role = 'ADMIN' | 'RESIDENT' | 'STAFF';
+export type Role = 'SUPER_ADMIN' | 'ADMIN' | 'RESIDENT' | 'STAFF';
 
 export type DueStatus = 'PENDING' | 'SUBMITTED_FOR_VERIFICATION' | 'PAID' | 'OVERDUE';
 
@@ -14,6 +14,28 @@ export type OccupancyType = 'OWNER' | 'TENANT';
 
 export type ApprovalStatus = 'PENDING' | 'APPROVED' | 'REJECTED';
 
+export interface Society {
+  id: string;
+  name: string;
+  slug: string;
+  address?: string | null;
+  city?: string | null;
+  state?: string | null;
+  pincode?: string | null;
+  totalFloors: number;
+  flatsPerFloor: number;
+  hasBasement: boolean;
+  hasTerrace: boolean;
+  bankAccountName?: string | null;
+  bankAccountNumber?: string | null;
+  bankIfscCode?: string | null;
+  upiId?: string | null;
+  _count?: {
+    flats?: number;
+    users?: number;
+  };
+}
+
 export interface User {
   id: string;
   email: string;
@@ -22,6 +44,7 @@ export interface User {
   role: Role;
   occupancyType?: OccupancyType;
   approvalStatus?: ApprovalStatus;
+  society?: Society | null;
   flat?: {
     id: string;
     unitNumber: string;

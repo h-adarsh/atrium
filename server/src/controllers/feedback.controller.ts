@@ -23,6 +23,7 @@ export async function submitFeedback(req: AuthenticatedRequest, res: Response): 
 
     const feedback = await prisma.feedback.create({
       data: {
+        societyId: req.user?.societyId || null,
         userId: req.user?.userId || null,
         name: name?.trim() || null,
         email: email?.trim() || null,
@@ -50,6 +51,9 @@ export async function getFeedbacks(req: AuthenticatedRequest, res: Response): Pr
     const { category, minRating } = req.query;
 
     const whereClause: any = {};
+    if (req.user?.role !== 'SUPER_ADMIN' && req.user?.societyId) {
+      whereClause.societyId = req.user.societyId;
+    }
     if (category && category !== 'ALL') {
       whereClause.category = category as FeedbackType;
     }
@@ -106,6 +110,18 @@ export async function getFeedbacks(req: AuthenticatedRequest, res: Response): Pr
 export async function deleteFeedback(req: AuthenticatedRequest, res: Response): Promise<void> {
   try {
     const { id } = req.params;
+
+    const existing = await prisma.feedback.findUnique({ where: { id } });
+    if (!existing) {
+      res.status(404).json({ success: false, message: 'Feedback entry not found' });
+      return;
+    }
+
+    if (req.user?.role !== 'SUPER_ADMIN' && req.user?.societyId && existing.societyId && existing.societyId !== req.user.societyId) {
+      res.status(403).json({ success: false, message: 'Forbidden' });
+      return;
+    }
+
     await prisma.feedback.delete({ where: { id } });
     res.json({ success: true, message: 'Feedback entry deleted' });
   } catch (error) {

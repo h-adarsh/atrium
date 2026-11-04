@@ -4,10 +4,20 @@ import { AuthenticatedRequest } from '../middleware/auth';
 
 export async function getAllFlats(req: AuthenticatedRequest, res: Response): Promise<void> {
   try {
-    const isAdmin = req.user?.role === 'ADMIN';
+    const isAdmin = req.user?.role === 'ADMIN' || req.user?.role === 'SUPER_ADMIN';
     const userFlatId = req.user?.flatId;
 
+    const whereClause: any = {};
+    if (req.user?.role !== 'SUPER_ADMIN') {
+      if (req.user?.societyId) {
+        whereClause.societyId = req.user.societyId;
+      }
+    } else if (req.query.societyId) {
+      whereClause.societyId = String(req.query.societyId);
+    }
+
     const flats = await prisma.flat.findMany({
+      where: whereClause,
       include: {
         resident: {
           select: { id: true, fullName: true, email: true, phone: true }
@@ -72,6 +82,12 @@ export async function getFlatById(req: AuthenticatedRequest, res: Response): Pro
       return;
     }
 
+    // MULTI-TENANT ISOLATION: Admin/Resident can only view flats in their own society
+    if (req.user?.role !== 'SUPER_ADMIN' && req.user?.societyId && flat.societyId !== req.user.societyId) {
+      res.status(403).json({ success: false, message: 'Forbidden: Flat belongs to another society' });
+      return;
+    }
+
     res.json({ success: true, flat });
   } catch (error) {
     console.error('GetFlatById error:', error);
@@ -79,7 +95,7 @@ export async function getFlatById(req: AuthenticatedRequest, res: Response): Pro
   }
 }
 
-export async function updateFlat(req: Request, res: Response): Promise<void> {
+export async function updateFlat(req: AuthenticatedRequest, res: Response): Promise<void> {
   try {
     const { id } = req.params;
     const { superBuiltUpSqFt, carpetSqFt, fullName, phone, email } = req.body;
@@ -91,6 +107,12 @@ export async function updateFlat(req: Request, res: Response): Promise<void> {
 
     if (!flat) {
       res.status(404).json({ success: false, message: 'Flat not found' });
+      return;
+    }
+
+    // MULTI-TENANT ISOLATION: Admin can only update flats in their own society
+    if (req.user?.role !== 'SUPER_ADMIN' && req.user?.societyId && flat.societyId !== req.user.societyId) {
+      res.status(403).json({ success: false, message: 'Forbidden: Flat belongs to another society' });
       return;
     }
 

@@ -6,20 +6,31 @@ import { generateReceiptPdf } from '../services/pdf.service';
 import path from 'path';
 import fs from 'fs';
 
-export async function getConfig(_req: Request, res: Response): Promise<void> {
+export async function getConfig(req: AuthenticatedRequest, res: Response): Promise<void> {
   try {
-    let config = await prisma.maintenanceConfig.findFirst();
+    const societyId = req.user?.societyId || (await prisma.society.findFirst())?.id;
+    if (!societyId) {
+      res.status(404).json({ success: false, message: 'Society not found' });
+      return;
+    }
+
+    let config = await prisma.maintenanceConfig.findUnique({
+      where: { societyId }
+    });
+
     if (!config) {
+      const soc = await prisma.society.findUnique({ where: { id: societyId } });
       config = await prisma.maintenanceConfig.create({
         data: {
+          societyId,
           baseFixedCharge: 500.00,
           ratePerSqFt: 2.50,
           dueDayOfMonth: 5,
           lateFeeFlat: 100.00,
-          bankAccountName: 'Royal Orchid RWA',
-          bankAccountNumber: '923010049281729',
-          bankIfscCode: 'HDFC0001234',
-          upiId: 'royalorchid.rwa@hdfcbank'
+          bankAccountName: soc?.bankAccountName || 'Apartment RWA',
+          bankAccountNumber: soc?.bankAccountNumber || '923010049281729',
+          bankIfscCode: soc?.bankIfscCode || 'HDFC0001234',
+          upiId: soc?.upiId || 'royalorchid.rwa@hdfcbank'
         }
       });
     }
@@ -30,19 +41,29 @@ export async function getConfig(_req: Request, res: Response): Promise<void> {
   }
 }
 
-export async function updateConfig(req: Request, res: Response): Promise<void> {
+export async function updateConfig(req: AuthenticatedRequest, res: Response): Promise<void> {
   try {
+    const societyId = req.user?.societyId || (await prisma.society.findFirst())?.id;
+    if (!societyId) {
+      res.status(404).json({ success: false, message: 'Society not found' });
+      return;
+    }
+
     const { baseFixedCharge, ratePerSqFt, dueDayOfMonth, lateFeeFlat, bankAccountName, bankAccountNumber, bankIfscCode, upiId } = req.body;
 
-    let config = await prisma.maintenanceConfig.findFirst();
+    let config = await prisma.maintenanceConfig.findUnique({
+      where: { societyId }
+    });
+
     if (!config) {
       config = await prisma.maintenanceConfig.create({
         data: {
+          societyId,
           baseFixedCharge: Number(baseFixedCharge) || 500,
           ratePerSqFt: Number(ratePerSqFt) || 2.50,
           dueDayOfMonth: Number(dueDayOfMonth) || 5,
           lateFeeFlat: Number(lateFeeFlat) || 100,
-          bankAccountName: bankAccountName || 'Royal Orchid RWA',
+          bankAccountName: bankAccountName || 'Apartment RWA',
           bankAccountNumber: bankAccountNumber || '',
           bankIfscCode: bankIfscCode || '',
           upiId: upiId || ''
@@ -74,9 +95,13 @@ export async function updateConfig(req: Request, res: Response): Promise<void> {
 export async function getDues(req: AuthenticatedRequest, res: Response): Promise<void> {
   try {
     const { period, flatId } = req.query;
-    const isAdmin = req.user?.role === 'ADMIN';
+    const isAdmin = req.user?.role === 'ADMIN' || req.user?.role === 'SUPER_ADMIN';
 
     const whereClause: any = {};
+
+    if (req.user?.role !== 'SUPER_ADMIN' && req.user?.societyId) {
+      whereClause.societyId = req.user.societyId;
+    }
 
     if (!isAdmin) {
       // PRIVACY: Only Admin can view society-wide dues ledger.
@@ -122,7 +147,7 @@ export async function getDues(req: AuthenticatedRequest, res: Response): Promise
   }
 }
 
-export async function generateMonthlyDuesBatch(req: Request, res: Response): Promise<void> {
+export async function generateMonthlyDuesBatch(req: AuthenticatedRequest, res: Response): Promise<void> {
   try {
     const { billingPeriod } = req.body; // e.g. "2026-11"
 
@@ -131,20 +156,26 @@ export async function generateMonthlyDuesBatch(req: Request, res: Response): Pro
       return;
     }
 
-    // Check if dues already generated
+    const societyId = req.user?.societyId || (await prisma.society.findFirst())?.id;
+    if (!societyId) {
+      res.status(400).json({ success: false, message: 'Society not identified for dues generation.' });
+      return;
+    }
+
+    // Check if dues already generated for this society
     const existing = await prisma.maintenanceDue.findFirst({
-      where: { billingPeriod }
+      where: { billingPeriod, societyId }
     });
 
     if (existing) {
       res.status(400).json({
         success: false,
-        message: `Dues for billing period ${billingPeriod} have already been generated.`
+        message: `Dues for billing period ${billingPeriod} have already been generated for this building.`
       });
       return;
     }
 
-    const config = await prisma.maintenanceConfig.findFirst();
+    const config = await prisma.maintenanceConfig.findUnique({ where: { societyId } });
     const ratePerSqFt = Number(config?.ratePerSqFt || 2.50);
     const baseFixed = Number(config?.baseFixedCharge || 500.00);
     const dueDay = config?.dueDayOfMonth || 5;
@@ -152,7 +183,7 @@ export async function generateMonthlyDuesBatch(req: Request, res: Response): Pro
     const [year, month] = billingPeriod.split('-').map(Number);
     const dueDate = new Date(year, month - 1, dueDay, 23, 59, 59);
 
-    const flats = await prisma.flat.findMany();
+    const flats = await prisma.flat.findMany({ where: { societyId } });
 
     const createdDues = await prisma.$transaction(
       flats.map(flat => {
@@ -161,6 +192,7 @@ export async function generateMonthlyDuesBatch(req: Request, res: Response): Pro
 
         return prisma.maintenanceDue.create({
           data: {
+            societyId,
             flatId: flat.id,
             billingPeriod,
             sqFtRate: ratePerSqFt,
@@ -315,7 +347,15 @@ export async function verifyPayment(req: AuthenticatedRequest, res: Response): P
       return;
     }
 
-    const config = await prisma.maintenanceConfig.findFirst();
+    // MULTI-TENANT ISOLATION: Admin can strictly only verify payments for their own society
+    if (req.user?.role !== 'SUPER_ADMIN' && req.user?.societyId && payment.due.societyId !== req.user.societyId) {
+      res.status(403).json({ success: false, message: 'Forbidden: You can only verify payments for your own society.' });
+      return;
+    }
+
+    const config = await prisma.maintenanceConfig.findUnique({
+      where: { societyId: payment.due.societyId }
+    });
 
     if (status === 'VERIFIED') {
       const receiptNumber = payment.receiptNumber || `RCP-${payment.due.billingPeriod.replace('-', '')}-${payment.due.flat.unitNumber}`;
@@ -396,6 +436,12 @@ export async function downloadReceipt(req: AuthenticatedRequest, res: Response):
   try {
     const { receiptNumber } = req.params;
 
+    // Strict format validation to prevent path traversal characters
+    if (!receiptNumber || !/^[A-Za-z0-9\-_]+$/.test(receiptNumber)) {
+      res.status(400).json({ success: false, message: 'Invalid receipt number format' });
+      return;
+    }
+
     const payment = await prisma.payment.findUnique({
       where: { receiptNumber },
       include: {
@@ -410,17 +456,66 @@ export async function downloadReceipt(req: AuthenticatedRequest, res: Response):
       return;
     }
 
-    // Role check: Resident can only download their own receipt
+    // Role check: Resident can only download their own flat receipt
     if (req.user?.role === 'RESIDENT' && req.user.flatId !== payment.due.flatId) {
-      res.status(403).json({ success: false, message: 'Forbidden' });
+      res.status(403).json({ success: false, message: 'Forbidden: You can only download receipts for your own flat' });
       return;
     }
 
-    const filePath = path.resolve(__dirname, `../../uploads/receipts/receipt-${receiptNumber}.pdf`);
+    // MULTI-TENANT ISOLATION: Admin/Staff can only access receipts from their own society
+    if (req.user?.role !== 'SUPER_ADMIN' && req.user?.societyId && payment.due.societyId !== req.user.societyId) {
+      res.status(403).json({ success: false, message: 'Forbidden: This receipt belongs to another society' });
+      return;
+    }
+
+    const receiptsBaseDir = path.resolve(__dirname, '../../uploads/receipts');
+    let safeFileName = path.basename(`receipt-${receiptNumber}.pdf`);
+    let filePath = path.join(receiptsBaseDir, safeFileName);
+
+    // If default pattern doesn't exist, check if payment record has a specific receiptPdfUrl on disk
+    if (!fs.existsSync(filePath) && payment.receiptPdfUrl) {
+      const altFileName = path.basename(payment.receiptPdfUrl);
+      const altPath = path.join(receiptsBaseDir, altFileName);
+      if (fs.existsSync(altPath)) {
+        filePath = altPath;
+        safeFileName = altFileName;
+      }
+    }
+
+    // Guard against directory traversal
+    if (!filePath.startsWith(receiptsBaseDir)) {
+      res.status(400).json({ success: false, message: 'Invalid file path' });
+      return;
+    }
 
     if (!fs.existsSync(filePath)) {
-      res.status(404).json({ success: false, message: 'Receipt file not found on server' });
-      return;
+      // Resilient on-demand generation if physical file was purged or not yet written to disk
+      const society = await prisma.society.findUnique({
+        where: { id: payment.due.societyId }
+      });
+      const config = await prisma.maintenanceConfig.findUnique({
+        where: { societyId: payment.due.societyId }
+      });
+      const resident = await prisma.user.findFirst({
+        where: { flatId: payment.due.flatId }
+      });
+
+      await generateReceiptPdf({
+        receiptNumber: payment.receiptNumber || receiptNumber,
+        societyName: society?.name || config?.bankAccountName || 'Apartment Society',
+        unitNumber: payment.due.flat.unitNumber,
+        residentName: resident?.fullName || 'Resident',
+        billingPeriod: payment.due.billingPeriod,
+        areaSqFt: payment.due.areaSqFt,
+        sqFtRate: Number(payment.due.sqFtRate),
+        fixedCharge: Number(payment.due.fixedCharge),
+        variableCharge: Number(payment.due.variableCharge),
+        totalPaid: Number(payment.amountPaid),
+        paymentMethod: payment.paymentMethod,
+        utrNumber: payment.utrNumber || 'N/A',
+        paidAt: payment.paidAt,
+        verifiedAt: payment.verifiedAt || new Date()
+      });
     }
 
     res.download(filePath, `Receipt_${receiptNumber}.pdf`);
@@ -430,10 +525,14 @@ export async function downloadReceipt(req: AuthenticatedRequest, res: Response):
   }
 }
 
-export async function getExpenses(req: Request, res: Response): Promise<void> {
+export async function getExpenses(req: AuthenticatedRequest, res: Response): Promise<void> {
   try {
     const { category, month } = req.query;
     const where: any = {};
+
+    if (req.user?.role !== 'SUPER_ADMIN' && req.user?.societyId) {
+      where.societyId = req.user.societyId;
+    }
 
     if (category) {
       where.category = String(category);
@@ -473,8 +572,15 @@ export async function createExpense(req: AuthenticatedRequest, res: Response): P
       return;
     }
 
+    const societyId = req.user?.societyId || (await prisma.society.findFirst())?.id;
+    if (!societyId) {
+      res.status(400).json({ success: false, message: 'Society not identified for recording expense' });
+      return;
+    }
+
     const expense = await prisma.expense.create({
       data: {
+        societyId,
         title,
         category,
         amount: Number(amount),
@@ -492,9 +598,24 @@ export async function createExpense(req: AuthenticatedRequest, res: Response): P
   }
 }
 
-export async function deleteExpense(req: Request, res: Response): Promise<void> {
+export async function deleteExpense(req: AuthenticatedRequest, res: Response): Promise<void> {
   try {
     const { id } = req.params;
+
+    const expense = await prisma.expense.findUnique({
+      where: { id }
+    });
+
+    if (!expense) {
+      res.status(404).json({ success: false, message: 'Expense record not found' });
+      return;
+    }
+
+    // MULTI-TENANT ISOLATION: Admin can only delete expenses for their own society
+    if (req.user?.role !== 'SUPER_ADMIN' && req.user?.societyId && expense.societyId !== req.user.societyId) {
+      res.status(403).json({ success: false, message: 'Forbidden: You can only delete expenses from your own society' });
+      return;
+    }
 
     await prisma.expense.delete({
       where: { id }
@@ -511,11 +632,19 @@ export async function getFinancialSummary(req: AuthenticatedRequest, res: Respon
   try {
     const { period } = req.query;
     const currentPeriod = String(period || '2026-10');
-    const isAdmin = req.user?.role === 'ADMIN';
+    const isAdmin = req.user?.role === 'ADMIN' || req.user?.role === 'SUPER_ADMIN';
+
+    const societyFilter: any = {};
+    if (req.user?.role !== 'SUPER_ADMIN' && req.user?.societyId) {
+      societyFilter.societyId = req.user.societyId;
+    }
 
     // 1. Dues for this period
     const dues = await prisma.maintenanceDue.findMany({
-      where: { billingPeriod: currentPeriod }
+      where: {
+        billingPeriod: currentPeriod,
+        ...societyFilter
+      }
     });
 
     const totalBilled = dues.reduce((acc, d) => acc + Number(d.totalDue), 0);
@@ -534,7 +663,8 @@ export async function getFinancialSummary(req: AuthenticatedRequest, res: Respon
 
     const expenses = await prisma.expense.findMany({
       where: {
-        expenseDate: { gte: startOfMonth, lte: endOfMonth }
+        expenseDate: { gte: startOfMonth, lte: endOfMonth },
+        ...societyFilter
       }
     });
 

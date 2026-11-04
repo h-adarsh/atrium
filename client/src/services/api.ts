@@ -1,5 +1,6 @@
 import {
   User,
+  Society,
   MaintenanceConfig,
   MaintenanceDue,
   Expense,
@@ -14,19 +15,29 @@ import {
 export const API_ORIGIN = import.meta.env.VITE_API_URL || '';
 const BASE_URL = `${API_ORIGIN}/api/v1`;
 
+export function getAuthToken(): string | null {
+  if (typeof window === 'undefined') return null;
+  return localStorage.getItem('atrium_token') || localStorage.getItem('mygate_token');
+}
+
 export function getFileUrl(path?: string | null): string {
   if (!path) return '';
   if (path.startsWith('http://') || path.startsWith('https://')) return path;
-  return `${API_ORIGIN}${path.startsWith('/') ? path : `/${path}`}`;
+  const token = getAuthToken();
+  const base = `${API_ORIGIN}${path.startsWith('/') ? path : `/${path}`}`;
+  if (!token) return base;
+  const separator = base.includes('?') ? '&' : '?';
+  return `${base}${separator}token=${encodeURIComponent(token)}`;
 }
 
 export function getReceiptUrl(receiptNumber: string): string {
-  return `${BASE_URL}/finance/receipts/${receiptNumber}`;
+  const token = getAuthToken();
+  return `${BASE_URL}/finance/receipts/${encodeURIComponent(receiptNumber)}${token ? `?token=${encodeURIComponent(token)}` : ''}`;
 }
 
 async function request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
   const isFormData = options.body instanceof FormData;
-  const token = localStorage.getItem('mygate_token');
+  const token = getAuthToken();
 
   const headers: Record<string, string> = {
     ...(isFormData ? {} : { 'Content-Type': 'application/json' }),
@@ -67,6 +78,8 @@ export const api = {
       occupantCount: number;
       password: string;
       passwordConfirmation?: string;
+      societyId?: string;
+      societySlug?: string;
     }) =>
       request<{ success: boolean; message: string; user: User; token: string }>('/auth/register', {
         method: 'POST',
@@ -86,11 +99,14 @@ export const api = {
         method: 'PUT',
         body: JSON.stringify(data)
       }),
-    getBuildingUnits: () =>
+    getBuildingUnits: (societySlug?: string) =>
       request<{
         success: boolean;
+        society?: Society | null;
         floors: Array<{ floor: number; units: string[] }>;
-      }>('/auth/building-units'),
+      }>(`/auth/building-units${societySlug ? `?societySlug=${encodeURIComponent(societySlug)}` : ''}`),
+    cancelPendingRegistration: () =>
+      request<{ success: boolean; message: string }>('/auth/pending-registration', { method: 'DELETE' }),
     getPendingRegistrations: () =>
       request<{
         success: boolean;
@@ -157,6 +173,27 @@ export const api = {
         method: 'PATCH',
         body: JSON.stringify(data)
       }),
+    downloadReceipt: async (receiptNumber: string): Promise<void> => {
+      const token = getAuthToken();
+      const headers: Record<string, string> = token ? { Authorization: `Bearer ${token}` } : {};
+      const res = await fetch(`${BASE_URL}/finance/receipts/${encodeURIComponent(receiptNumber)}`, {
+        headers,
+        credentials: 'include'
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.message || 'Failed to download receipt');
+      }
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `Receipt_${receiptNumber}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    },
     getExpenses: (params?: { category?: string; month?: string }) => {
       const q = new URLSearchParams();
       if (params?.category) q.set('category', params.category);
@@ -206,6 +243,10 @@ export const api = {
         method: 'POST',
         body: JSON.stringify(data)
       }),
+    togglePin: (id: string) =>
+      request<{ success: boolean; notice: Notice; message: string }>(`/notices/${id}/toggle-pin`, {
+        method: 'PATCH'
+      }),
     delete: (id: string) =>
       request<{ success: boolean; message: string }>('/notices/' + id, {
         method: 'DELETE'
@@ -240,6 +281,19 @@ export const api = {
     delete: (id: string) =>
       request<{ success: boolean; message: string }>(`/feedback/${id}`, {
         method: 'DELETE'
+      })
+  },
+
+  // Societies
+  societies: {
+    getAll: () =>
+      request<{ success: boolean; societies: Society[] }>('/societies'),
+    getBySlug: (slug: string) =>
+      request<{ success: boolean; society: Society }>('/societies/' + slug),
+    create: (data: any) =>
+      request<{ success: boolean; society: Society; message: string }>('/societies', {
+        method: 'POST',
+        body: JSON.stringify(data)
       })
   }
 };

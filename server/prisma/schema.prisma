@@ -8,6 +8,7 @@ generator client {
 }
 
 enum Role {
+  SUPER_ADMIN
   ADMIN
   RESIDENT
   STAFF
@@ -59,9 +60,40 @@ enum ApprovalStatus {
   REJECTED
 }
 
+model Society {
+  id                String             @id @default(uuid())
+  name              String             // e.g. "Royal Orchid Apartments"
+  slug              String             @unique // e.g. "royal-orchid"
+  address           String?
+  city              String?            @default("Bengaluru")
+  state             String?            @default("Karnataka")
+  pincode           String?
+  totalFloors       Int                @default(4)
+  flatsPerFloor     Int                @default(6)
+  hasBasement       Boolean            @default(false)
+  hasTerrace        Boolean            @default(true)
+  bankAccountName   String?
+  bankAccountNumber String?
+  bankIfscCode      String?
+  upiId             String?
+  flats             Flat[]
+  users             User[]
+  dues              MaintenanceDue[]
+  complaints        Complaint[]
+  expenses          Expense[]
+  notices           Notice[]
+  config            MaintenanceConfig?
+  feedbacks         Feedback[]
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+}
+
 model Flat {
   id               String           @id @default(uuid())
-  unitNumber       String           @unique // e.g. "101", "102"
+  societyId        String
+  society          Society          @relation(fields: [societyId], references: [id], onDelete: Cascade)
+  wing             String?          // e.g. "Wing A", "Block 1"
+  unitNumber       String           // e.g. "101", "102"
   floorNumber      Int              // 1, 2, 3, 4
   superBuiltUpSqFt Float            // e.g. 1150
   carpetSqFt       Float?           // e.g. 920
@@ -74,10 +106,14 @@ model Flat {
   complaints       Complaint[]
   createdAt        DateTime         @default(now())
   updatedAt        DateTime         @updatedAt
+
+  @@unique([societyId, unitNumber])
 }
 
 model User {
   id             String         @id @default(uuid())
+  societyId      String?
+  society        Society?       @relation(fields: [societyId], references: [id], onDelete: SetNull)
   email          String         @unique
   phone          String?
   fullName       String
@@ -100,6 +136,8 @@ model User {
 
 model MaintenanceConfig {
   id                 String   @id @default(uuid())
+  societyId          String   @unique
+  society            Society  @relation(fields: [societyId], references: [id], onDelete: Cascade)
   baseFixedCharge    Decimal  @default(500.00) // Base common area charge (₹)
   ratePerSqFt        Decimal  @default(2.50)   // ₹ per sq ft rate
   dueDayOfMonth      Int      @default(5)      // 5th of every month
@@ -113,6 +151,8 @@ model MaintenanceConfig {
 
 model MaintenanceDue {
   id             String    @id @default(uuid())
+  societyId      String
+  society        Society   @relation(fields: [societyId], references: [id], onDelete: Cascade)
   flatId         String
   flat           Flat      @relation(fields: [flatId], references: [id])
   billingPeriod  String    // e.g. "2026-10"
@@ -152,6 +192,8 @@ model Payment {
 
 model Expense {
   id           String   @id @default(uuid())
+  societyId    String
+  society      Society  @relation(fields: [societyId], references: [id], onDelete: Cascade)
   title        String   // e.g. "Water Tanker (2 loads)"
   category     String   // "WATER", "CLEANING", "ELECTRICITY", "REPAIRS", "LIFT_AMC", "MISC"
   amount       Decimal
@@ -166,6 +208,8 @@ model Expense {
 
 model Complaint {
   id                 String            @id @default(uuid())
+  societyId          String
+  society            Society           @relation(fields: [societyId], references: [id], onDelete: Cascade)
   ticketNumber       Int               @default(autoincrement())
   flatId             String
   flat               Flat              @relation(fields: [flatId], references: [id])
@@ -188,6 +232,8 @@ model Complaint {
 
 model Notice {
   id            String         @id @default(uuid())
+  societyId     String
+  society       Society        @relation(fields: [societyId], references: [id], onDelete: Cascade)
   title         String
   content       String
   category      String         // "WATER", "POWER", "MAINTENANCE", "MEETING", "GENERAL"
@@ -209,6 +255,8 @@ enum FeedbackType {
 
 model Feedback {
   id         String       @id @default(uuid())
+  societyId  String?
+  society    Society?     @relation(fields: [societyId], references: [id], onDelete: SetNull)
   userId     String?
   user       User?        @relation("UserFeedbacks", fields: [userId], references: [id])
   name       String?
@@ -220,4 +268,3 @@ model Feedback {
   deviceInfo String?      // e.g. "Mobile Chrome / iOS"
   createdAt  DateTime     @default(now())
 }
-

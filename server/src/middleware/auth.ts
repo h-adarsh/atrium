@@ -8,7 +8,9 @@ export interface AuthenticatedRequest extends Request {
 }
 
 export function requireAuth(req: AuthenticatedRequest, res: Response, next: NextFunction): void {
-  const token = req.cookies?.token || (req.headers.authorization?.startsWith('Bearer ') ? req.headers.authorization.split(' ')[1] : null);
+  const token = req.cookies?.token || 
+    (req.headers.authorization?.startsWith('Bearer ') ? req.headers.authorization.split(' ')[1] : null) ||
+    (typeof req.query?.token === 'string' ? req.query.token : null);
 
   if (!token) {
     res.status(401).json({ success: false, message: 'Authentication required. Please sign in.' });
@@ -26,7 +28,9 @@ export function requireAuth(req: AuthenticatedRequest, res: Response, next: Next
 }
 
 export function optionalAuth(req: AuthenticatedRequest, _res: Response, next: NextFunction): void {
-  const token = req.cookies?.token || (req.headers.authorization?.startsWith('Bearer ') ? req.headers.authorization.split(' ')[1] : null);
+  const token = req.cookies?.token || 
+    (req.headers.authorization?.startsWith('Bearer ') ? req.headers.authorization.split(' ')[1] : null) ||
+    (typeof req.query?.token === 'string' ? req.query.token : null);
   if (token) {
     const decoded = verifyToken(token);
     if (decoded) {
@@ -40,6 +44,12 @@ export function requireRole(allowedRoles: Role[]) {
   return (req: AuthenticatedRequest, res: Response, next: NextFunction): void => {
     if (!req.user) {
       res.status(401).json({ success: false, message: 'Authentication required.' });
+      return;
+    }
+
+    // Super admin has universal override permission
+    if (req.user.role === Role.SUPER_ADMIN) {
+      next();
       return;
     }
 
@@ -61,8 +71,8 @@ export async function requireApprovedUser(req: AuthenticatedRequest, res: Respon
     return;
   }
 
-  // Admin and Staff roles bypass resident approval checks
-  if (req.user.role === Role.ADMIN || req.user.role === Role.STAFF) {
+  // SuperAdmin, Admin, and Staff roles bypass resident approval checks
+  if (req.user.role === Role.SUPER_ADMIN || req.user.role === Role.ADMIN || req.user.role === Role.STAFF) {
     next();
     return;
   }

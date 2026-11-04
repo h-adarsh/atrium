@@ -44,13 +44,21 @@ const AppContent: React.FC = () => {
     return () => window.removeEventListener('hashchange', handleHashChange);
   }, [activeTab]);
 
+  // Clean URL hash when unauthenticated / logged out so login screen remains clean
+  useEffect(() => {
+    if (!user && typeof window !== 'undefined' && window.location.hash) {
+      window.history.replaceState(null, '', window.location.pathname + window.location.search);
+      setActiveTabState('dashboard');
+    }
+  }, [user]);
+
   if (loading) {
     return (
       <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 flex flex-col items-center justify-center space-y-2">
         <div className="w-8 h-8 rounded-md bg-zinc-900 dark:bg-zinc-100 flex items-center justify-center text-white dark:text-zinc-900 animate-pulse">
           <Building2 className="w-4 h-4" />
         </div>
-        <p className="text-xs text-zinc-500 font-medium">Loading Royal Orchid...</p>
+        <p className="text-xs text-zinc-500 font-medium">Loading community portal...</p>
       </div>
     );
   }
@@ -60,15 +68,16 @@ const AppContent: React.FC = () => {
       <>
         <Login />
         {/* Floating feedback button for testers on login screen */}
-        <div className="fixed bottom-4 right-4 z-50">
+        <div className="fixed bottom-3 right-3 sm:bottom-4 sm:right-4 z-50">
           <button
             type="button"
             onClick={() => setShowFeedbackModal(true)}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-full bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 text-xs font-semibold shadow-lg hover:scale-105 transition"
+            className="flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-full bg-[#333333] text-white dark:bg-[#f4f4f5] dark:text-[#18181b] border border-[#e5e7eb] dark:border-[#27272a] text-xs font-semibold shadow-none hover:bg-[#1f1f1f] dark:hover:bg-white transition cursor-pointer"
             title="Tester Feedback"
           >
-            <MessageSquarePlus className="w-4 h-4 text-amber-400 dark:text-amber-600" />
-            <span>Tester Feedback</span>
+            <MessageSquarePlus className="w-3.5 h-3.5 text-amber-400 dark:text-amber-600" />
+            <span className="hidden sm:inline">Tester Feedback</span>
+            <span className="sm:hidden">Feedback</span>
           </button>
         </div>
         <FeedbackModal
@@ -85,14 +94,15 @@ const AppContent: React.FC = () => {
     return (
       <>
         <PendingApprovalScreen />
-        <div className="fixed bottom-4 right-4 z-50">
+        <div className="fixed bottom-3 right-3 sm:bottom-4 sm:right-4 z-50">
           <button
             type="button"
             onClick={() => setShowFeedbackModal(true)}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-full bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 text-xs font-semibold shadow-lg hover:scale-105 transition"
+            className="flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-full bg-[#333333] text-white dark:bg-[#f4f4f5] dark:text-[#18181b] border border-[#e5e7eb] dark:border-[#27272a] text-xs font-semibold shadow-none hover:bg-[#1f1f1f] dark:hover:bg-white transition cursor-pointer"
           >
-            <MessageSquarePlus className="w-4 h-4 text-amber-400" />
-            <span>Give Feedback</span>
+            <MessageSquarePlus className="w-3.5 h-3.5 text-amber-400 dark:text-amber-600" />
+            <span className="hidden sm:inline">Give Feedback</span>
+            <span className="sm:hidden">Feedback</span>
           </button>
         </div>
         <FeedbackModal
@@ -115,7 +125,7 @@ const AppContent: React.FC = () => {
       />
 
       {/* Main Content Area */}
-      <main className="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 pt-6">
+      <main className="flex-1 max-w-6xl w-full mx-auto px-3.5 sm:px-6 pt-5 sm:pt-6 pb-20 sm:pb-12">
         {activeTab === 'dashboard' && <Dashboard setActiveTab={setActiveTab} />}
         {activeTab === 'dues' && <DuesPage />}
         {activeTab === 'complaints' && <ComplaintsPage />}
@@ -126,11 +136,11 @@ const AppContent: React.FC = () => {
       </main>
 
       {/* Floating Feedback Button for mobile testers */}
-      <div className="fixed bottom-4 right-4 sm:hidden z-30">
+      <div className="fixed bottom-3 right-3 sm:hidden z-30">
         <button
           type="button"
           onClick={() => setShowFeedbackModal(true)}
-          className="flex items-center gap-1.5 px-3 py-2 rounded-full bg-zinc-900/90 text-white dark:bg-zinc-100/90 dark:text-zinc-900 text-xs font-medium backdrop-blur-md shadow-lg border border-zinc-700/40"
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#333333] text-white dark:bg-[#f4f4f5] dark:text-[#18181b] border border-[#e5e7eb] dark:border-[#27272a] text-xs font-semibold shadow-none transition cursor-pointer"
         >
           <MessageSquarePlus className="w-3.5 h-3.5 text-amber-400 dark:text-amber-600" />
           <span>Feedback</span>
@@ -152,7 +162,7 @@ const AppContent: React.FC = () => {
       {/* Minimal Footer */}
       <footer className="mt-auto border-t border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 py-4 text-center text-xs text-zinc-400">
         <div className="max-w-6xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-1">
-          <span>Royal Orchid Resident Welfare Association (RWA)</span>
+          <span>{user?.society?.name || 'Royal Orchid'} Resident Welfare Association (RWA)</span>
           <div className="flex items-center gap-3">
             <button
               type="button"
@@ -162,7 +172,7 @@ const AppContent: React.FC = () => {
               <span>Feedback & Bugs</span>
             </button>
             <span>•</span>
-            <span>24 Units • 4 Floors</span>
+            <span>{user?.society ? `${user.society.totalFloors} Floors` : '4 Floors'}</span>
           </div>
         </div>
       </footer>

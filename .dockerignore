@@ -1,0 +1,47 @@
+# Ignore local node_modules so container builds with fresh Alpine binaries
+**/node_modules
+node_modules
+client/node_modules
+server/node_modules
+
+# Ignore local build output
+**/dist
+dist
+client/dist
+server/dist
+
+# Ignore local environment & credential files
+**/.env
+**/.env.local
+**/.env.*.local
+*.env
+!*.env.example
+!*.env.production.example
+
+# Ignore local database files
+**/*.db
+**/*.db-journal
+**/*.sqlite
+**/*.sqlite-journal
+server/dev.db
+server/prisma/dev.db
+
+# Ignore Git & metadata
+.git
+.github
+.gitignore
+.vscode
+.idea
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Ignore OS files
+.DS_Store
+Thumbs.db
+
+# Ignore test & coverage artifacts
+coverage
+.nyc_output
+

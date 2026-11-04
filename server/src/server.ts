@@ -10,20 +10,47 @@ import rateLimit from 'express-rate-limit';
 dotenv.config();
 
 import { prisma } from './config/prisma';
+import { requireAuth, requireApprovedUser } from './middleware/auth';
 import authRoutes from './routes/auth.routes';
 import flatsRoutes from './routes/flats.routes';
 import financeRoutes from './routes/finance.routes';
 import complaintsRoutes from './routes/complaints.routes';
 import noticesRoutes from './routes/notices.routes';
 import feedbackRoutes from './routes/feedback.routes';
+import societiesRoutes from './routes/societies.routes';
+
+// Production Secret Hygiene Validation
+if (process.env.NODE_ENV === 'production') {
+  const jwtSecret = process.env.JWT_SECRET;
+  if (!jwtSecret || jwtSecret.length < 32 || jwtSecret.includes('change-me') || jwtSecret.includes('super-secret')) {
+    console.error('🚨 CRITICAL SECURITY MISCONFIGURATION: Insecure JWT_SECRET detected in production!');
+    console.error('A cryptographically strong secret of at least 32 characters is required.');
+    console.error('Generate one with: openssl rand -base64 32');
+    process.exit(1);
+  }
+}
 
 const app = express();
 const PORT = process.env.PORT || 5001;
 
-// Helmet security headers (with cross-origin allowed for receipts and proof downloads)
+// Trust reverse proxy (OCI Load Balancer, Nginx, Caddy) for accurate rate limiting and IP tracking
+app.set('trust proxy', 1);
+
+// Helmet security headers & Content Security Policy
 app.use(helmet({
   crossOriginResourcePolicy: { policy: 'cross-origin' },
-  contentSecurityPolicy: false // Allows dynamic assets and styles in Vite SPA
+  contentSecurityPolicy: process.env.NODE_ENV === 'production' ? {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", "'unsafe-inline'"],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      imgSrc: ["'self'", "data:", "blob:", "https:"],
+      connectSrc: ["'self'", "https:", "wss:"],
+      fontSrc: ["'self'", "data:"],
+      objectSrc: ["'none'"],
+      frameAncestors: ["'none'"]
+    }
+  } : false
 }));
 
 // CORS Configuration supporting multiple production origins and preview URLs
@@ -64,10 +91,18 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(cookieParser());
 
-// Rate limiters for public endpoints
+// Rate limiters for defense-in-depth against DDoS and brute-force
+const globalApiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 600, // 600 requests per 15 min per IP
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { success: false, message: 'Too many requests from this IP, please try again later.' }
+});
+
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 50,
+  max: 20, // 20 attempts per 15 minutes
   standardHeaders: true,
   legacyHeaders: false,
   message: { success: false, message: 'Too many authentication attempts. Please try again after 15 minutes.' }
@@ -81,16 +116,46 @@ const feedbackLimiter = rateLimit({
   message: { success: false, message: 'Feedback submission rate limit reached. Please try again later.' }
 });
 
-// Static file serving for uploads (receipts & photos)
+const societyCreationLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { success: false, message: 'Society creation rate limit reached. Please try again later.' }
+});
+
+// Apply global API rate limit
+app.use('/api', globalApiLimiter);
+
+// Static file serving directory for uploads
 const uploadsDir = path.resolve(__dirname, '../uploads');
 if (!fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir, { recursive: true });
 }
-app.use('/uploads', express.static(uploadsDir));
 
-// Static file serving for React SPA build (if client/dist exists)
-const clientDistPath = path.resolve(__dirname, '../../client/dist');
+// SECURITY: Prohibit direct static file access to receipt PDFs.
+// Receipts must strictly go through authenticated multi-tenant endpoint /api/v1/finance/receipts/:receiptNumber
+app.use('/uploads/receipts', (_req: Request, res: Response) => {
+  res.status(403).json({
+    success: false,
+    message: 'Direct access to receipts directory is forbidden. Access receipts through /api/v1/finance/receipts/:receiptNumber'
+  });
+});
+
+// SECURITY: Protect uploaded payment proofs and bills with authenticated user session
+app.use('/uploads', requireAuth, requireApprovedUser, express.static(uploadsDir));
+
+// Static file serving for React SPA build (robust resolution for Docker and standalone runtimes)
+const possibleClientDistPaths = [
+  path.resolve(__dirname, '../../client/dist'),
+  path.resolve(__dirname, '../client/dist'),
+  path.resolve(process.cwd(), 'client/dist'),
+  path.resolve(process.cwd(), '../client/dist')
+];
+const clientDistPath = possibleClientDistPaths.find(p => fs.existsSync(p)) || possibleClientDistPaths[0];
+
 if (fs.existsSync(clientDistPath)) {
+  console.log(`📦 Serving static client build from: ${clientDistPath}`);
   app.use(express.static(clientDistPath));
 }
 
@@ -102,7 +167,7 @@ app.get('/api/health', async (_req: Request, res: Response) => {
       status: 'healthy',
       database: 'connected',
       timestamp: new Date().toISOString(),
-      service: 'myGate Apartment Operations API'
+      service: 'Atrium Apartment Operations API'
     });
   } catch (dbErr: any) {
     res.status(503).json({
@@ -123,6 +188,8 @@ app.use('/api/v1/finance', financeRoutes);
 app.use('/api/v1/complaints', complaintsRoutes);
 app.use('/api/v1/notices', noticesRoutes);
 app.use('/api/v1/feedback', feedbackLimiter, feedbackRoutes);
+app.post('/api/v1/societies', societyCreationLimiter);
+app.use('/api/v1/societies', societiesRoutes);
 
 // Single Page Application (SPA) client fallback in production
 if (fs.existsSync(clientDistPath)) {
@@ -139,17 +206,20 @@ app.use((_req: Request, res: Response) => {
   res.status(404).json({ success: false, message: 'API endpoint not found' });
 });
 
-// Global error handling middleware
+// Global error handling middleware (suppresses stack traces and DB internals in production)
 app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
   console.error('Unhandled server error:', err);
+  const isProd = process.env.NODE_ENV === 'production';
   res.status(err.status || 500).json({
     success: false,
-    message: err.message || 'An internal server error occurred'
+    message: isProd && (!err.status || err.status >= 500)
+      ? 'An unexpected internal server error occurred. Please contact support.'
+      : err.message || 'An internal server error occurred'
   });
 });
 
 const server = app.listen(PORT, () => {
-  console.log(`🚀 myGate API Server running at http://localhost:${PORT}`);
+  console.log(`🚀 Atrium API Server running at http://localhost:${PORT}`);
   console.log(`📡 Health Check: http://localhost:${PORT}/api/health`);
 });
 

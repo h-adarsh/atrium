@@ -8,10 +8,12 @@ import {
   getBuildingUnits,
   getPendingRegistrations,
   reviewRegistration,
+  cancelPendingRegistration,
   updateProfile,
   changePassword
 } from '../controllers/auth.controller';
-import { requireAuth } from '../middleware/auth';
+import { requireAuth, requireRole } from '../middleware/auth';
+import { Role } from '@prisma/client';
 
 const router = Router();
 
@@ -24,8 +26,11 @@ router.put('/change-password', requireAuth, changePassword);
 router.get('/demo-accounts', getDemoAccounts);
 router.get('/building-units', getBuildingUnits);
 
+// Resident self-service: Cancel mistaken or rejected registration
+router.delete('/pending-registration', requireAuth, cancelPendingRegistration);
+
 // Admin-only approval routes
-router.get('/admin/pending-registrations', requireAuth, getPendingRegistrations);
-router.post('/admin/registrations/:userId/review', requireAuth, reviewRegistration);
+router.get('/admin/pending-registrations', requireAuth, requireRole([Role.ADMIN]), getPendingRegistrations);
+router.post('/admin/registrations/:userId/review', requireAuth, requireRole([Role.ADMIN]), reviewRegistration);
 
 export default router;

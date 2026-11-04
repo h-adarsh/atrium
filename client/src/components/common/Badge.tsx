@@ -5,30 +5,30 @@ export const DueStatusBadge: React.FC<{ status: DueStatus }> = ({ status }) => {
   switch (status) {
     case 'PAID':
       return (
-        <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800/60">
-          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[13px] font-medium bg-white dark:bg-[#18181b] text-[#333333] dark:text-[#f4f4f5] border border-[#e5e7eb] dark:border-[#27272a]">
+          <span className="w-1.5 h-1.5 rounded-full bg-[#24b26d] shrink-0" />
           Paid & Verified
         </span>
       );
     case 'SUBMITTED_FOR_VERIFICATION':
       return (
-        <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-xs font-medium bg-amber-50 text-amber-800 border border-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800/60">
-          <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[13px] font-medium bg-white dark:bg-[#18181b] text-[#545454] dark:text-[#a1a1aa] border border-[#e5e7eb] dark:border-[#27272a]">
+          <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" />
           Verification Pending
         </span>
       );
     case 'OVERDUE':
       return (
-        <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-xs font-medium bg-rose-50 text-rose-700 border border-rose-200 dark:bg-rose-950/40 dark:text-rose-300 dark:border-rose-800/60">
-          <span className="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
+        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[13px] font-medium bg-white dark:bg-[#18181b] text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-900/50">
+          <span className="w-1.5 h-1.5 rounded-full bg-rose-500 shrink-0" />
           Overdue
         </span>
       );
     case 'PENDING':
     default:
       return (
-        <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-xs font-medium bg-zinc-100 text-zinc-700 border border-zinc-200 dark:bg-zinc-800 dark:text-zinc-300 dark:border-zinc-700">
-          <span className="w-1.5 h-1.5 rounded-full bg-zinc-400"></span>
+        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[13px] font-medium bg-[#f9f9fb] dark:bg-[#18181b] text-[#767676] dark:text-[#a1a1aa] border border-[#e5e7eb] dark:border-[#27272a]">
+          <span className="w-1.5 h-1.5 rounded-full bg-[#808080] shrink-0" />
           Unpaid
         </span>
       );
@@ -39,37 +39,43 @@ export const ComplaintStatusBadge: React.FC<{ status: ComplaintStatus }> = ({ st
   switch (status) {
     case 'OPEN':
       return (
-        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-700 border border-blue-200 dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-800/60">
+        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[13px] font-medium bg-white dark:bg-[#18181b] text-[#2c70dd] border border-[#e5e7eb] dark:border-[#27272a]">
+          <span className="w-1.5 h-1.5 rounded-full bg-[#2c70dd] shrink-0" />
           Open
         </span>
       );
     case 'ASSIGNED':
       return (
-        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-indigo-50 text-indigo-700 border border-indigo-200 dark:bg-indigo-950/40 dark:text-indigo-300 dark:border-indigo-800/60">
+        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[13px] font-medium bg-white dark:bg-[#18181b] text-[#545454] dark:text-[#a1a1aa] border border-[#e5e7eb] dark:border-[#27272a]">
+          <span className="w-1.5 h-1.5 rounded-full bg-[#545454] shrink-0" />
           Assigned
         </span>
       );
     case 'IN_PROGRESS':
       return (
-        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-amber-50 text-amber-700 border border-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800/60">
+        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[13px] font-medium bg-white dark:bg-[#18181b] text-amber-600 dark:text-amber-400 border border-[#e5e7eb] dark:border-[#27272a]">
+          <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" />
           In Progress
         </span>
       );
     case 'RESOLVED':
       return (
-        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800/60">
+        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[13px] font-medium bg-white dark:bg-[#18181b] text-[#24b26d] border border-[#e5e7eb] dark:border-[#27272a]">
+          <span className="w-1.5 h-1.5 rounded-full bg-[#24b26d] shrink-0" />
           Resolved
         </span>
       );
     case 'CLOSED':
       return (
-        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-zinc-100 text-zinc-600 border border-zinc-200 dark:bg-zinc-800 dark:text-zinc-400 dark:border-zinc-700">
+        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[13px] font-medium bg-[#f9f9fb] dark:bg-[#18181b] text-[#767676] dark:text-[#a1a1aa] border border-[#e5e7eb] dark:border-[#27272a]">
+          <span className="w-1.5 h-1.5 rounded-full bg-[#808080] shrink-0" />
           Closed
         </span>
       );
     case 'REJECTED':
       return (
-        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-rose-50 text-rose-700 border border-rose-200 dark:bg-rose-950/40 dark:text-rose-300 dark:border-rose-800/60">
+        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[13px] font-medium bg-white dark:bg-[#18181b] text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-900/50">
+          <span className="w-1.5 h-1.5 rounded-full bg-rose-500 shrink-0" />
           Rejected
         </span>
       );
@@ -80,25 +86,27 @@ export const PriorityBadge: React.FC<{ priority: ComplaintPriority }> = ({ prior
   switch (priority) {
     case 'EMERGENCY':
       return (
-        <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-rose-100 text-rose-800 border border-rose-200 dark:bg-rose-950/60 dark:text-rose-300 dark:border-rose-800">
+        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800">
+          <span className="w-1.5 h-1.5 rounded-full bg-rose-500 shrink-0" />
           Emergency
         </span>
       );
     case 'HIGH':
       return (
-        <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-amber-100 text-amber-800 border border-amber-200 dark:bg-amber-950/50 dark:text-amber-300 dark:border-amber-800">
+        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
+          <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" />
           High
         </span>
       );
     case 'MEDIUM':
       return (
-        <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-zinc-100 text-zinc-700 border border-zinc-200 dark:bg-zinc-800 dark:text-zinc-300 dark:border-zinc-700">
+        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-white dark:bg-[#18181b] text-[#545454] dark:text-[#a1a1aa] border border-[#e5e7eb] dark:border-[#27272a]">
           Medium
         </span>
       );
     case 'LOW':
       return (
-        <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-zinc-100 text-zinc-600 border border-zinc-200 dark:bg-zinc-800 dark:text-zinc-400 dark:border-zinc-700">
+        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-white dark:bg-[#18181b] text-[#767676] dark:text-[#a1a1aa] border border-[#e5e7eb] dark:border-[#27272a]">
           Low
         </span>
       );
@@ -109,20 +117,22 @@ export const NoticePriorityBadge: React.FC<{ priority: NoticePriority }> = ({ pr
   switch (priority) {
     case 'URGENT':
       return (
-        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-rose-100 text-rose-800 border border-rose-200 dark:bg-rose-950/60 dark:text-rose-300 dark:border-rose-800">
+        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800">
+          <span className="w-1.5 h-1.5 rounded-full bg-rose-500 shrink-0" />
           Urgent
         </span>
       );
     case 'IMPORTANT':
       return (
-        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-amber-100 text-amber-800 border border-amber-200 dark:bg-amber-950/50 dark:text-amber-300 dark:border-amber-800">
+        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
+          <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" />
           Important
         </span>
       );
     case 'NORMAL':
     default:
       return (
-        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-zinc-100 text-zinc-700 border border-zinc-200 dark:bg-zinc-800 dark:text-zinc-300 dark:border-zinc-700">
+        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-[#f9f9fb] dark:bg-[#18181b] text-[#545454] dark:text-[#a1a1aa] border border-[#e5e7eb] dark:border-[#27272a]">
           Notice
         </span>
       );

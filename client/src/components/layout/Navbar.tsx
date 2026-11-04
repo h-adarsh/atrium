@@ -21,17 +21,19 @@ export const Navbar: React.FC<NavbarProps> = ({
   const [switching, setSwitching] = useState(false);
 
   const demoAccounts = [
-    { email: 'admin@mygate.local', label: 'Admin (Secretary)', role: 'ADMIN', unit: 'Building Admin' },
-    { email: 'flat203@mygate.local', label: 'Flat 203 — Adarsh Singh', role: 'RESIDENT', unit: 'Flat 203 (Paid & Verified)' },
-    { email: 'flat201@mygate.local', label: 'Flat 201 — Sunil Deshmukh', role: 'RESIDENT', unit: 'Flat 201 (Pending Verification)' },
-    { email: 'flat402@mygate.local', label: 'Flat 402 — Kavita Reddy', role: 'RESIDENT', unit: 'Flat 402 (Unpaid + Open Ticket)' },
-    { email: 'staff@mygate.local', label: 'Staff — Ramesh Kumar', role: 'STAFF', unit: 'Technician' },
+    { email: 'admin@atrium.local', label: 'Royal Orchid Admin (Rajesh)', role: 'ADMIN', unit: 'Royal Orchid (4F/24U)' },
+    { email: 'greenwoods.admin@atrium.local', label: 'Greenwoods Admin (Vikram)', role: 'ADMIN', unit: 'Greenwoods (3F/12U)' },
+    { email: 'flat203@atrium.local', label: 'Royal Orchid 203 — Adarsh Singh', role: 'RESIDENT', unit: 'Flat 203 (Paid & Verified)' },
+    { email: 'gw202@atrium.local', label: 'Greenwoods 202 — Anand Murthy', role: 'RESIDENT', unit: 'Flat 202 (Paid & Verified)' },
+    { email: 'gw204@atrium.local', label: 'Greenwoods 204 — Sameer Kulkarni', role: 'RESIDENT', unit: 'Flat 204 (Pending Verification)' },
+    { email: 'staff@atrium.local', label: 'Staff — Ramesh Kumar', role: 'STAFF', unit: 'Royal Orchid' },
+    { email: 'greenwoods.staff@atrium.local', label: 'Staff — Suresh Gowda', role: 'STAFF', unit: 'Greenwoods Enclave' },
   ];
 
   const handleSwitch = async (email: string) => {
     setSwitching(true);
     setShowRoleDropdown(false);
-    const pwd = email.startsWith('admin') ? 'admin123' : email.startsWith('staff') ? 'staff123' : 'resident123';
+    const pwd = email.includes('admin') ? 'admin123' : email.includes('staff') ? 'staff123' : 'resident123';
     await quickSwitchAccount(email, pwd);
     setSwitching(false);
   };
@@ -47,45 +49,45 @@ export const Navbar: React.FC<NavbarProps> = ({
   ];
 
   return (
-    <header className="sticky top-0 z-40 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-md border-b border-zinc-200 dark:border-zinc-800 transition-colors">
+    <header className="sticky top-0 z-40 bg-white/95 dark:bg-[#121214]/95 backdrop-blur-md border-b border-[#e5e7eb] dark:border-[#27272a] transition-colors">
       <div className="max-w-6xl mx-auto px-4 sm:px-6">
         <div className="flex items-center justify-between h-14">
           {/* Brand */}
           <div
-            className="flex items-center gap-2.5 cursor-pointer"
+            className="flex items-center gap-2 cursor-pointer min-w-0"
             onClick={() => setActiveTab('dashboard')}
           >
-            <div className="w-7 h-7 rounded-md bg-zinc-900 dark:bg-zinc-100 flex items-center justify-center text-white dark:text-zinc-900">
+            <div className="w-7 h-7 rounded-full bg-[#333333] dark:bg-[#f4f4f5] flex items-center justify-center text-white dark:text-[#18181b] shrink-0">
               <Building2 className="w-4 h-4" />
             </div>
-            <div className="flex items-center gap-2">
-              <span className="font-semibold text-sm tracking-tight text-zinc-900 dark:text-zinc-100">
-                Royal Orchid
+            <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
+              <span className="font-semibold text-[14px] sm:text-[15px] tracking-tight text-[#333333] dark:text-[#f4f4f5] truncate max-w-[120px] sm:max-w-[200px] md:max-w-none">
+                {user?.society?.name || 'Royal Orchid'}
               </span>
-              <span className="hidden sm:inline-flex text-[11px] font-medium px-1.5 py-0.5 rounded bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400">
-                24 Units
+              <span className="hidden sm:inline-flex text-[11px] font-medium px-2 py-0.5 rounded-full bg-[#eff0f6] dark:bg-[#27272a] text-[#545454] dark:text-[#a1a1aa] border border-[#e5e7eb] dark:border-[#3f3f46] shrink-0">
+                {user?.society ? `${user.society.totalFloors} Floors` : '24 Units'}
               </span>
             </div>
           </div>
 
           {/* User Controls */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
             {/* Feedback Trigger Button */}
             <button
               type="button"
               onClick={onOpenFeedback}
-              className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md border border-amber-200 dark:border-amber-900/60 bg-amber-50/80 dark:bg-amber-950/30 text-amber-700 dark:text-amber-400 text-xs font-medium hover:bg-amber-100 dark:hover:bg-amber-900/50 transition shadow-xs"
+              className="hidden md:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-[#e5e7eb] dark:border-[#27272a] bg-[#f9f9fb] dark:bg-[#18181b] text-[#545454] dark:text-[#a1a1aa] hover:text-[#333333] dark:hover:text-[#ffffff] text-[13px] font-medium hover:border-[#545454] transition shadow-none cursor-pointer"
               title="Share feedback or report an issue"
             >
               <MessageSquarePlus className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Feedback</span>
+              <span>Feedback</span>
             </button>
 
             {/* Profile Button */}
             <button
               type="button"
               onClick={onOpenProfile}
-              className="p-1.5 rounded-md border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition shadow-xs"
+              className="p-1.5 sm:p-2 rounded-full border border-[#e5e7eb] dark:border-[#27272a] bg-white dark:bg-[#18181b] text-[#545454] hover:text-[#333333] dark:text-[#a1a1aa] dark:hover:text-[#f4f4f5] hover:bg-[#f9f9fb] dark:hover:bg-[#27272a] hover:border-[#545454] transition shadow-none cursor-pointer"
               title="Resident Profile & Security"
             >
               <UserIcon className="w-4 h-4" />
@@ -99,13 +101,13 @@ export const Navbar: React.FC<NavbarProps> = ({
               <button
                 type="button"
                 onClick={() => setShowRoleDropdown(!showRoleDropdown)}
-                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-xs font-medium text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition shadow-xs"
+                className="flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-full border border-[#e5e7eb] dark:border-[#27272a] bg-white dark:bg-[#18181b] text-[12px] sm:text-[13px] font-medium text-[#333333] dark:text-[#f4f4f5] hover:bg-[#f9f9fb] dark:hover:bg-[#27272a] hover:border-[#545454] transition shadow-none cursor-pointer"
               >
-                <span className="text-zinc-500 hidden sm:inline">Role:</span>
-                <span className="font-semibold text-zinc-900 dark:text-zinc-100">
+                <span className="text-[#767676] hidden sm:inline">Role:</span>
+                <span className="font-semibold text-[#333333] dark:text-[#f4f4f5] truncate max-w-[80px] sm:max-w-none">
                   {user?.role === 'ADMIN' ? 'Admin' : user?.flat ? `Flat ${user.flat.unitNumber}` : user?.role === 'STAFF' ? 'Staff' : user?.fullName}
                 </span>
-                <ChevronDown className="w-3.5 h-3.5 text-zinc-400" />
+                <ChevronDown className="w-3.5 h-3.5 text-[#767676]" />
               </button>
 
               {showRoleDropdown && (
@@ -114,8 +116,8 @@ export const Navbar: React.FC<NavbarProps> = ({
                     className="fixed inset-0 z-10"
                     onClick={() => setShowRoleDropdown(false)}
                   />
-                  <div className="absolute right-0 mt-1.5 w-64 rounded-lg bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-md p-1 z-20">
-                    <div className="px-2.5 py-1.5 text-[11px] font-semibold text-zinc-400 dark:text-zinc-500 uppercase tracking-wider">
+                  <div className="absolute right-0 mt-2 w-68 rounded-[12px] bg-white dark:bg-[#18181b] border border-[#e5e7eb] dark:border-[#27272a] shadow-none p-1.5 z-20">
+                    <div className="px-2.5 py-1.5 text-[11px] font-semibold text-[#767676] uppercase tracking-wider">
                       Switch Role (Testing)
                     </div>
                     <div className="space-y-0.5">
@@ -127,17 +129,17 @@ export const Navbar: React.FC<NavbarProps> = ({
                             type="button"
                             onClick={() => handleSwitch(acc.email)}
                             disabled={switching}
-                            className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded text-left text-xs transition ${
+                            className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-left text-[13px] transition ${
                               isCurrent
-                                ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 font-semibold'
-                                : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800/60'
+                                ? 'bg-[#eff0f6] dark:bg-[#27272a] text-[#333333] dark:text-[#f4f4f5] font-semibold'
+                                : 'text-[#545454] dark:text-[#a1a1aa] hover:bg-[#f9f9fb] dark:hover:bg-[#27272a]/60 hover:text-[#333333]'
                             }`}
                           >
                             <div>
-                              <p>{acc.label}</p>
-                              <p className="text-[10px] text-zinc-400">{acc.unit}</p>
+                              <p className="font-medium">{acc.label}</p>
+                              <p className="text-[11px] text-[#767676]">{acc.unit}</p>
                             </div>
-                            {isCurrent && <Check className="w-3.5 h-3.5 text-zinc-900 dark:text-zinc-100" />}
+                            {isCurrent && <Check className="w-3.5 h-3.5 text-[#333333] dark:text-[#f4f4f5]" />}
                           </button>
                         );
                       })}
@@ -151,7 +153,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             <button
               type="button"
               onClick={logout}
-              className="p-1.5 rounded-md border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition shadow-xs"
+              className="p-2 rounded-full border border-[#e5e7eb] dark:border-[#27272a] bg-white dark:bg-[#18181b] text-[#767676] hover:text-[#333333] dark:text-[#a1a1aa] dark:hover:text-[#f4f4f5] hover:bg-[#f9f9fb] dark:hover:bg-[#27272a] hover:border-[#545454] transition shadow-none"
               title="Sign Out"
             >
               <LogOut className="w-4 h-4" />
@@ -159,8 +161,8 @@ export const Navbar: React.FC<NavbarProps> = ({
           </div>
         </div>
 
-        {/* Minimal Navigation Tabs */}
-        <nav className="flex items-center gap-1 overflow-x-auto py-1.5 border-t border-zinc-100 dark:border-zinc-800 no-scrollbar">
+        {/* Minimal Pill Navigation Tabs */}
+        <nav className="flex items-center gap-1.5 overflow-x-auto py-2 border-t border-[#e5e7eb] dark:border-[#27272a] no-scrollbar">
           {navItems.map((item) => {
             const isActive = activeTab === item.id;
             return (
@@ -168,10 +170,10 @@ export const Navbar: React.FC<NavbarProps> = ({
                 key={item.id}
                 type="button"
                 onClick={() => setActiveTab(item.id)}
-                className={`whitespace-nowrap px-3 py-1 rounded-md text-xs font-medium transition ${
+                className={`whitespace-nowrap px-3.5 py-1 rounded-full text-[13px] font-medium transition ${
                   isActive
-                    ? 'bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 shadow-xs'
-                    : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800'
+                    ? 'bg-[#333333] text-white dark:bg-[#f4f4f5] dark:text-[#18181b] shadow-none'
+                    : 'text-[#545454] dark:text-[#a1a1aa] hover:text-[#333333] dark:hover:text-[#ffffff] hover:bg-[#f9f9fb] dark:hover:bg-[#27272a]'
                 }`}
               >
                 {item.label}

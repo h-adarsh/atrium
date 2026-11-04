@@ -52,29 +52,29 @@ export const ExpensesPage: React.FC = () => {
   return (
     <div className="space-y-6 pb-12 font-sans">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-2 border-b border-zinc-200 dark:border-zinc-800">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-3 border-b border-[#e5e7eb] dark:border-[#27272a]">
         <div>
-          <h1 className="text-xl sm:text-2xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-100">
+          <h1 className="text-[26px] sm:text-[32px] font-bold tracking-tight text-[#333333] dark:text-[#f4f4f5] leading-tight">
             Society Expenses Ledger
           </h1>
-          <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
+          <p className="text-[13px] text-[#767676] dark:text-[#a1a1aa] mt-0.5">
             Transparent records of all building operational expenses and vouchers
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2.5">
           <input
             type="month"
             value={selectedMonth}
             onChange={(e) => setSelectedMonth(e.target.value)}
-            className="px-2.5 py-1.5 rounded-md border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-xs font-medium text-zinc-900 dark:text-zinc-100"
+            className="px-3 py-1.5 rounded-[8px] border border-[#e5e7eb] dark:border-[#27272a] bg-white dark:bg-[#18181b] text-[13px] font-medium text-[#333333] dark:text-[#f4f4f5] focus:outline-none focus:border-[#333333] shadow-none cursor-pointer"
           />
 
           {isAdmin && (
             <button
               type="button"
               onClick={() => setShowAddModal(true)}
-              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-md text-xs font-medium bg-zinc-900 text-white hover:bg-zinc-800 dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-zinc-200 transition"
+              className="inline-flex items-center gap-2 px-5 py-2 rounded-full text-[13px] font-semibold bg-[#333333] hover:bg-[#1f1f1f] text-white dark:bg-[#f4f4f5] dark:text-[#18181b] dark:hover:bg-white transition cursor-pointer shadow-none"
             >
               <Plus className="w-3.5 h-3.5" />
               <span>Record Expense</span>
@@ -86,54 +86,54 @@ export const ExpensesPage: React.FC = () => {
       {/* Summary Cards */}
       {isAdmin ? (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="p-4 rounded-lg bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 space-y-1">
-            <span className="text-xs text-zinc-500 font-medium">Dues Collected</span>
-            <p className="text-xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100">
+          <div className="p-5 rounded-[12px] bg-white dark:bg-[#18181b] border border-[#e5e7eb] dark:border-[#27272a] space-y-1 shadow-none">
+            <span className="text-[13px] text-[#767676] dark:text-[#a1a1aa] font-medium">Dues Collected</span>
+            <p className="text-[26px] font-bold tracking-tight text-[#333333] dark:text-[#f4f4f5]">
               ₹ {(summary?.totalCollected || 0).toLocaleString('en-IN')}
             </p>
-            <p className="text-[11px] text-zinc-400">Total monthly resident contributions</p>
+            <p className="text-[12px] text-[#767676]">Total monthly resident contributions</p>
           </div>
 
-          <div className="p-4 rounded-lg bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 space-y-1">
-            <span className="text-xs text-zinc-500 font-medium">Total Expenses Paid</span>
-            <p className="text-xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100">
+          <div className="p-5 rounded-[12px] bg-white dark:bg-[#18181b] border border-[#e5e7eb] dark:border-[#27272a] space-y-1 shadow-none">
+            <span className="text-[13px] text-[#767676] dark:text-[#a1a1aa] font-medium">Total Expenses Paid</span>
+            <p className="text-[26px] font-bold tracking-tight text-[#333333] dark:text-[#f4f4f5]">
               ₹ {totalExpenseAmount.toLocaleString('en-IN')}
             </p>
-            <p className="text-[11px] text-zinc-400">Lift, water tankers, cleaning, repairs</p>
+            <p className="text-[12px] text-[#767676]">Lift, water tankers, cleaning, repairs</p>
           </div>
 
-          <div className="p-4 rounded-lg bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 space-y-1">
-            <span className="text-xs text-zinc-500 font-medium">Net Monthly Balance</span>
-            <p className="text-xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100">
+          <div className="p-5 rounded-[12px] bg-white dark:bg-[#18181b] border border-[#e5e7eb] dark:border-[#27272a] space-y-1 shadow-none">
+            <span className="text-[13px] text-[#767676] dark:text-[#a1a1aa] font-medium">Net Monthly Balance</span>
+            <p className="text-[26px] font-bold tracking-tight text-[#333333] dark:text-[#f4f4f5]">
               ₹ {((summary?.totalCollected || 0) - totalExpenseAmount).toLocaleString('en-IN')}
             </p>
-            <p className="text-[11px] text-zinc-400">Inflow minus operational outflow</p>
+            <p className="text-[12px] text-[#767676]">Inflow minus operational outflow</p>
           </div>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="p-4 rounded-lg bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 space-y-1">
-            <span className="text-xs text-zinc-500 font-medium">Monthly Common Expenses</span>
-            <p className="text-xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100">
+          <div className="p-5 rounded-[12px] bg-white dark:bg-[#18181b] border border-[#e5e7eb] dark:border-[#27272a] space-y-1 shadow-none">
+            <span className="text-[13px] text-[#767676] dark:text-[#a1a1aa] font-medium">Monthly Common Expenses</span>
+            <p className="text-[26px] font-bold tracking-tight text-[#333333] dark:text-[#f4f4f5]">
               ₹ {totalExpenseAmount.toLocaleString('en-IN')}
             </p>
-            <p className="text-[11px] text-zinc-400">Water tankers, lift AMC, cleaning, electricity</p>
+            <p className="text-[12px] text-[#767676]">Water tankers, lift AMC, cleaning, electricity</p>
           </div>
 
-          <div className="p-4 rounded-lg bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 space-y-1">
-            <span className="text-xs text-zinc-500 font-medium">Recorded Vouchers</span>
-            <p className="text-xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100">
+          <div className="p-5 rounded-[12px] bg-white dark:bg-[#18181b] border border-[#e5e7eb] dark:border-[#27272a] space-y-1 shadow-none">
+            <span className="text-[13px] text-[#767676] dark:text-[#a1a1aa] font-medium">Recorded Vouchers</span>
+            <p className="text-[26px] font-bold tracking-tight text-[#333333] dark:text-[#f4f4f5]">
               {expenses.length} Entries
             </p>
-            <p className="text-[11px] text-zinc-400">Vendor bills & verified payment receipts</p>
+            <p className="text-[12px] text-[#767676]">Vendor bills & verified payment receipts</p>
           </div>
 
-          <div className="p-4 rounded-lg bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 space-y-1">
-            <span className="text-xs text-zinc-500 font-medium">Operational Transparency</span>
-            <p className="text-xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100">
+          <div className="p-5 rounded-[12px] bg-white dark:bg-[#18181b] border border-[#e5e7eb] dark:border-[#27272a] space-y-1 shadow-none">
+            <span className="text-[13px] text-[#767676] dark:text-[#a1a1aa] font-medium">Operational Transparency</span>
+            <p className="text-[26px] font-bold tracking-tight text-[#333333] dark:text-[#f4f4f5]">
               100% Accounted
             </p>
-            <p className="text-[11px] text-zinc-400">Shared building expenses audit log</p>
+            <p className="text-[12px] text-[#767676]">Shared building expenses audit log</p>
           </div>
         </div>
       )}
@@ -145,10 +145,10 @@ export const ExpensesPage: React.FC = () => {
             key={cat}
             type="button"
             onClick={() => setCategoryFilter(cat)}
-            className={`px-2.5 py-1 rounded-md text-xs font-medium whitespace-nowrap transition ${
+            className={`px-3.5 py-1 rounded-full text-[12px] font-medium whitespace-nowrap transition cursor-pointer ${
               categoryFilter === cat
-                ? 'bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900'
-                : 'bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100'
+                ? 'bg-[#333333] text-white dark:bg-[#f4f4f5] dark:text-[#18181b] shadow-none'
+                : 'border border-[#e5e7eb] dark:border-[#27272a] bg-white dark:bg-[#18181b] text-[#545454] dark:text-[#a1a1aa] hover:border-[#545454]'
             }`}
           >
             {cat === 'ALL' ? 'All' : getCategoryLabel(cat)}
@@ -157,66 +157,66 @@ export const ExpensesPage: React.FC = () => {
       </div>
 
       {/* Ledger Table */}
-      <div className="rounded-lg bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 overflow-hidden">
-        <div className="p-4 border-b border-zinc-100 dark:border-zinc-800 flex justify-between items-center">
-          <h2 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Itemized Ledger</h2>
-          <span className="text-xs text-zinc-400">{expenses.length} Records</span>
+      <div className="rounded-[12px] bg-white dark:bg-[#18181b] border border-[#e5e7eb] dark:border-[#27272a] overflow-hidden shadow-none">
+        <div className="p-4.5 border-b border-[#e5e7eb] dark:border-[#27272a] flex justify-between items-center">
+          <h2 className="text-[15px] font-semibold text-[#333333] dark:text-[#f4f4f5]">Itemized Ledger</h2>
+          <span className="text-[12px] text-[#767676]">{expenses.length} Records</span>
         </div>
 
         {expenses.length === 0 ? (
-          <p className="text-xs text-zinc-400 text-center py-8">
+          <p className="text-[13px] text-[#767676] text-center py-8">
             No expenses recorded for this month and filter.
           </p>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs text-zinc-700 dark:text-zinc-300">
-              <thead className="bg-zinc-50 dark:bg-zinc-800/60 text-zinc-500 uppercase text-[10px] tracking-wider border-b border-zinc-100 dark:border-zinc-800">
+            <table className="w-full text-left text-[13px] text-[#333333] dark:text-[#f4f4f5]">
+              <thead className="bg-[#eff0f6] dark:bg-[#1f1f23] text-[#545454] dark:text-[#a1a1aa] uppercase text-[11px] tracking-wider border-b border-[#e5e7eb] dark:border-[#27272a]">
                 <tr>
-                  <th className="py-2.5 px-3.5">Date</th>
-                  <th className="py-2.5 px-3.5">Category</th>
-                  <th className="py-2.5 px-3.5">Title</th>
-                  <th className="py-2.5 px-3.5">Vendor</th>
-                  <th className="py-2.5 px-3.5">Amount</th>
-                  <th className="py-2.5 px-3.5">Logged By</th>
-                  <th className="py-2.5 px-3.5 text-right">Voucher</th>
+                  <th className="py-3 px-4">Date</th>
+                  <th className="py-3 px-4">Category</th>
+                  <th className="py-3 px-4">Title</th>
+                  <th className="py-3 px-4">Vendor</th>
+                  <th className="py-3 px-4">Amount</th>
+                  <th className="py-3 px-4">Logged By</th>
+                  <th className="py-3 px-4 text-right">Voucher</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800/80">
+              <tbody className="divide-y divide-[#e5e7eb] dark:divide-[#27272a]">
                 {expenses.map((e) => (
-                  <tr key={e.id} className="hover:bg-zinc-50/60 dark:hover:bg-zinc-800/40 transition">
-                    <td className="py-2.5 px-3.5 text-zinc-500 font-mono text-[11px]">
+                  <tr key={e.id} className="hover:bg-[#f9f9fb] dark:hover:bg-[#1f1f23] transition">
+                    <td className="py-3 px-4 text-[#767676] font-mono text-[11px]">
                       {new Date(e.expenseDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })}
                     </td>
-                    <td className="py-2.5 px-3.5">
-                      <span className="inline-flex px-1.5 py-0.5 rounded text-[10px] font-medium bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-700">
+                    <td className="py-3 px-4">
+                      <span className="inline-flex px-2 py-0.5 rounded-full text-[11px] font-medium bg-[#eff0f6] dark:bg-[#27272a] text-[#545454] dark:text-[#a1a1aa] border border-[#e5e7eb] dark:border-[#3f3f46]">
                         {getCategoryLabel(e.category)}
                       </span>
                     </td>
-                    <td className="py-2.5 px-3.5 font-medium text-zinc-900 dark:text-zinc-100">
+                    <td className="py-3 px-4 font-semibold text-[#333333] dark:text-[#f4f4f5]">
                       {e.title}
                     </td>
-                    <td className="py-2.5 px-3.5 text-zinc-500">
+                    <td className="py-3 px-4 text-[#545454] dark:text-[#a1a1aa]">
                       {e.vendorName || '—'}
                     </td>
-                    <td className="py-2.5 px-3.5 font-semibold text-zinc-900 dark:text-zinc-100">
+                    <td className="py-3 px-4 font-semibold text-[#333333] dark:text-[#f4f4f5]">
                       ₹ {Number(e.amount).toLocaleString('en-IN')}
                     </td>
-                    <td className="py-2.5 px-3.5 text-zinc-500">
+                    <td className="py-3 px-4 text-[#767676]">
                       {e.recordedBy?.fullName.split(' ')[0] || 'Admin'}
                     </td>
-                    <td className="py-2.5 px-3.5 text-right">
+                    <td className="py-3 px-4 text-right">
                       {e.billImageUrl ? (
                         <a
                           href={getFileUrl(e.billImageUrl)}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1 text-xs text-blue-600 dark:text-blue-400 hover:underline"
+                          className="inline-flex items-center gap-1 text-[12px] text-[#2c70dd] hover:underline"
                         >
                           <span>Bill</span>
                           <ExternalLink className="w-3 h-3" />
                         </a>
                       ) : (
-                        <span className="text-zinc-400">—</span>
+                        <span className="text-[#767676]">—</span>
                       )}
                     </td>
                   </tr>

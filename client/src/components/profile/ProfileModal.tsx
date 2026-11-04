@@ -83,16 +83,16 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose }) =
       subtitle={user.flat ? `Flat ${user.flat.unitNumber} • Floor ${user.flat.floorNumber}` : user.email}
       maxWidth="max-w-md"
     >
-      <div className="space-y-4 font-sans text-xs">
-        {/* Navigation tabs inside modal */}
-        <div className="flex border-b border-zinc-200 dark:border-zinc-800">
+      <div className="space-y-4 font-sans text-[13px]">
+        {/* Navigation segmented pill tabs */}
+        <div className="flex p-1 rounded-full bg-[#eff0f6] dark:bg-[#27272a] border border-[#e5e7eb] dark:border-[#3f3f46]">
           <button
             type="button"
             onClick={() => setActiveTab('details')}
-            className={`flex-1 pb-2 text-xs font-medium text-center border-b-2 transition ${
+            className={`flex-1 py-1.5 px-3 text-[12px] font-semibold text-center rounded-full transition cursor-pointer ${
               activeTab === 'details'
-                ? 'border-zinc-900 dark:border-zinc-100 text-zinc-900 dark:text-zinc-100 font-semibold'
-                : 'border-transparent text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300'
+                ? 'bg-white dark:bg-[#18181b] text-[#333333] dark:text-[#f4f4f5] shadow-none'
+                : 'text-[#767676] hover:text-[#333333] dark:hover:text-[#ffffff]'
             }`}
           >
             Account Details
@@ -100,10 +100,10 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose }) =
           <button
             type="button"
             onClick={() => setActiveTab('security')}
-            className={`flex-1 pb-2 text-xs font-medium text-center border-b-2 transition ${
+            className={`flex-1 py-1.5 px-3 text-[12px] font-semibold text-center rounded-full transition cursor-pointer ${
               activeTab === 'security'
-                ? 'border-zinc-900 dark:border-zinc-100 text-zinc-900 dark:text-zinc-100 font-semibold'
-                : 'border-transparent text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300'
+                ? 'bg-white dark:bg-[#18181b] text-[#333333] dark:text-[#f4f4f5] shadow-none'
+                : 'text-[#767676] hover:text-[#333333] dark:hover:text-[#ffffff]'
             }`}
           >
             Password & Security
@@ -111,47 +111,47 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose }) =
         </div>
 
         {activeTab === 'details' ? (
-          <form onSubmit={handleUpdateProfile} className="space-y-3">
+          <form onSubmit={handleUpdateProfile} className="space-y-3.5">
             {detailsSuccess && (
-              <div className="flex items-center gap-2 p-2.5 rounded-md bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800">
+              <div className="flex items-center gap-2 p-3 rounded-[8px] bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 text-[12px]">
                 <CheckCircle2 className="w-4 h-4 shrink-0" />
                 <span>Profile details saved successfully.</span>
               </div>
             )}
             {detailsError && (
-              <div className="flex items-center gap-2 p-2.5 rounded-md bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-400 border border-rose-200 dark:border-rose-800">
+              <div className="flex items-center gap-2 p-3 rounded-[8px] bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-400 border border-rose-200 dark:border-rose-800 text-[12px]">
                 <AlertCircle className="w-4 h-4 shrink-0" />
                 <span>{detailsError}</span>
               </div>
             )}
 
             {/* Readonly Identity Box */}
-            <div className="p-3 rounded-lg bg-zinc-50 dark:bg-zinc-900/60 border border-zinc-200 dark:border-zinc-800 space-y-2">
+            <div className="p-3.5 rounded-[8px] bg-[#eff0f6] dark:bg-[#1f1f23] border border-[#e5e7eb] dark:border-[#27272a] space-y-2 text-[12px]">
               <div className="flex justify-between items-center">
-                <span className="text-zinc-500">Registered Email</span>
-                <span className="font-mono text-zinc-800 dark:text-zinc-200">{user.email}</span>
+                <span className="text-[#767676]">Registered Email</span>
+                <span className="font-mono text-[#333333] dark:text-[#f4f4f5]">{user.email}</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-zinc-500">System Role</span>
-                <span className="font-semibold text-zinc-900 dark:text-zinc-100">{user.role}</span>
+                <span className="text-[#767676]">System Role</span>
+                <span className="font-semibold text-[#333333] dark:text-[#f4f4f5]">{user.role}</span>
               </div>
               {user.flat && (
                 <>
                   <div className="flex justify-between items-center">
-                    <span className="text-zinc-500">Allocated Unit</span>
-                    <span className="font-semibold text-zinc-900 dark:text-zinc-100">
+                    <span className="text-[#767676]">Allocated Unit</span>
+                    <span className="font-semibold text-[#333333] dark:text-[#f4f4f5]">
                       Unit {user.flat.unitNumber} (Floor {user.flat.floorNumber})
                     </span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-zinc-500">Super Built-Up Area</span>
-                    <span className="font-medium text-zinc-800 dark:text-zinc-200">
+                    <span className="text-[#767676]">Super Built-Up Area</span>
+                    <span className="font-medium text-[#333333] dark:text-[#f4f4f5]">
                       {user.flat.superBuiltUpSqFt} sq.ft.
                     </span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-zinc-500">Occupancy Type</span>
-                    <span className="font-medium text-zinc-800 dark:text-zinc-200">
+                    <span className="text-[#767676]">Occupancy Type</span>
+                    <span className="font-medium text-[#333333] dark:text-[#f4f4f5]">
                       {user.occupancyType || 'OWNER'}
                     </span>
                   </div>
@@ -161,19 +161,19 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose }) =
 
             {/* Editable Full Name */}
             <div className="space-y-1">
-              <label className="block text-zinc-700 dark:text-zinc-300 font-medium">Full Name</label>
+              <label className="block text-[#545454] dark:text-[#a1a1aa] font-medium">Full Name</label>
               <input
                 type="text"
                 required
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
-                className="w-full px-3 py-1.5 rounded-md border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100"
+                className="w-full px-3 py-2 rounded-[8px] border border-[#e5e7eb] dark:border-[#27272a] bg-white dark:bg-[#1f1f23] text-[#333333] dark:text-[#f4f4f5] focus:outline-none focus:border-[#333333] shadow-none"
               />
             </div>
 
             {/* Editable Phone */}
             <div className="space-y-1">
-              <label className="block text-zinc-700 dark:text-zinc-300 font-medium">
+              <label className="block text-[#545454] dark:text-[#a1a1aa] font-medium">
                 Mobile Number (for RWA notices)
               </label>
               <input
@@ -181,7 +181,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose }) =
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
                 placeholder="+91 98765 43210"
-                className="w-full px-3 py-1.5 rounded-md border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100"
+                className="w-full px-3 py-2 rounded-[8px] border border-[#e5e7eb] dark:border-[#27272a] bg-white dark:bg-[#1f1f23] text-[#333333] dark:text-[#f4f4f5] focus:outline-none focus:border-[#333333] shadow-none"
               />
             </div>
 
@@ -189,29 +189,29 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose }) =
               <button
                 type="submit"
                 disabled={savingDetails}
-                className="px-4 py-1.5 rounded-md bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 font-medium hover:bg-zinc-800 transition disabled:opacity-50"
+                className="px-5 py-2 rounded-full bg-[#333333] text-white hover:bg-[#1f1f1f] dark:bg-[#f4f4f5] dark:text-[#18181b] font-semibold text-[13px] transition disabled:opacity-50 cursor-pointer shadow-none"
               >
                 {savingDetails ? 'Saving...' : 'Save Profile'}
               </button>
             </div>
           </form>
         ) : (
-          <form onSubmit={handleChangePassword} className="space-y-3">
+          <form onSubmit={handleChangePassword} className="space-y-3.5">
             {passwordSuccess && (
-              <div className="flex items-center gap-2 p-2.5 rounded-md bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800">
+              <div className="flex items-center gap-2 p-3 rounded-[8px] bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 text-[12px]">
                 <CheckCircle2 className="w-4 h-4 shrink-0" />
                 <span>Password updated successfully.</span>
               </div>
             )}
             {passwordError && (
-              <div className="flex items-center gap-2 p-2.5 rounded-md bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-400 border border-rose-200 dark:border-rose-800">
+              <div className="flex items-center gap-2 p-3 rounded-[8px] bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-400 border border-rose-200 dark:border-rose-800 text-[12px]">
                 <AlertCircle className="w-4 h-4 shrink-0" />
                 <span>{passwordError}</span>
               </div>
             )}
 
             <div className="space-y-1">
-              <label className="block text-zinc-700 dark:text-zinc-300 font-medium">
+              <label className="block text-[#545454] dark:text-[#a1a1aa] font-medium">
                 Current Password
               </label>
               <input
@@ -219,12 +219,12 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose }) =
                 required
                 value={currentPassword}
                 onChange={(e) => setCurrentPassword(e.target.value)}
-                className="w-full px-3 py-1.5 rounded-md border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100"
+                className="w-full px-3 py-2 rounded-[8px] border border-[#e5e7eb] dark:border-[#27272a] bg-white dark:bg-[#1f1f23] text-[#333333] dark:text-[#f4f4f5] focus:outline-none focus:border-[#333333] shadow-none"
               />
             </div>
 
             <div className="space-y-1">
-              <label className="block text-zinc-700 dark:text-zinc-300 font-medium">
+              <label className="block text-[#545454] dark:text-[#a1a1aa] font-medium">
                 New Password
               </label>
               <input
@@ -233,12 +233,12 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose }) =
                 minLength={6}
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
-                className="w-full px-3 py-1.5 rounded-md border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100"
+                className="w-full px-3 py-2 rounded-[8px] border border-[#e5e7eb] dark:border-[#27272a] bg-white dark:bg-[#1f1f23] text-[#333333] dark:text-[#f4f4f5] focus:outline-none focus:border-[#333333] shadow-none"
               />
             </div>
 
             <div className="space-y-1">
-              <label className="block text-zinc-700 dark:text-zinc-300 font-medium">
+              <label className="block text-[#545454] dark:text-[#a1a1aa] font-medium">
                 Confirm New Password
               </label>
               <input
@@ -247,7 +247,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose }) =
                 minLength={6}
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                className="w-full px-3 py-1.5 rounded-md border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100"
+                className="w-full px-3 py-2 rounded-[8px] border border-[#e5e7eb] dark:border-[#27272a] bg-white dark:bg-[#1f1f23] text-[#333333] dark:text-[#f4f4f5] focus:outline-none focus:border-[#333333] shadow-none"
               />
             </div>
 
@@ -255,7 +255,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose }) =
               <button
                 type="submit"
                 disabled={savingPassword}
-                className="px-4 py-1.5 rounded-md bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 font-medium hover:bg-zinc-800 transition disabled:opacity-50"
+                className="px-5 py-2 rounded-full bg-[#333333] text-white hover:bg-[#1f1f1f] dark:bg-[#f4f4f5] dark:text-[#18181b] font-semibold text-[13px] transition disabled:opacity-50 cursor-pointer shadow-none"
               >
                 {savingPassword ? 'Updating...' : 'Update Password'}
               </button>
